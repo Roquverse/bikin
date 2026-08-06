@@ -49,10 +49,17 @@ async function main() {
   ];
 
   for (const event of eventsData) {
-    const created = await prisma.event.create({
-      data: event,
+    const existing = await prisma.event.findFirst({
+      where: { title: event.title },
     });
-    console.log(`Created event: ${created.title}`);
+    if (!existing) {
+      const created = await prisma.event.create({
+        data: event,
+      });
+      console.log(`Created event: ${created.title}`);
+    } else {
+      console.log(`Event already exists: ${event.title}`);
+    }
   }
 
   console.log('Seed completed successfully!');
