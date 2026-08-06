@@ -45,12 +45,16 @@ class FeedOverlay extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                video.organizerName,
-                style: const TextStyle(
-                  color: AppColors.offWhite,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              Flexible(
+                child: Text(
+                  video.organizerName,
+                  style: const TextStyle(
+                    color: AppColors.offWhite,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: 12),

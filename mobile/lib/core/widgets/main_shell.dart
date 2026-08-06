@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../feed/presentation/screens/home_feed_screen.dart';
-import '../../../feed/presentation/screens/explore_screen.dart';
-import '../../../tickets/presentation/screens/bookings_screen.dart';
-import '../../../profile/presentation/screens/profile_screen.dart';
+import '../theme/app_colors.dart';
+import '../../features/feed/presentation/screens/home_feed_screen.dart';
+import '../../features/feed/presentation/screens/explore_screen.dart';
+import '../../features/tickets/presentation/screens/bookings_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
