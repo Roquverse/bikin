@@ -8,9 +8,10 @@ import { UsersModule } from './users/users.module';
 import { MediaModule } from './media/media.module';
 import { PaymentsModule } from './payments/payments.module';
 import { FeedModule } from './feed/feed.module';
+import { MailModule } from './common/mail/mail.module';
 
 @Module({
-  imports: [PrismaModule, RedisModule, AuthModule, UsersModule, MediaModule, PaymentsModule, FeedModule],
+  imports: [PrismaModule, RedisModule, AuthModule, UsersModule, MediaModule, PaymentsModule, FeedModule, MailModule],
   controllers: [AppController],
   providers: [AppService],
 })
