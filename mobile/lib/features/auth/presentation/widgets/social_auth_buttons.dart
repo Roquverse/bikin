@@ -33,9 +33,10 @@ class SocialAuthButtons extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.network(
-                      'https://developers.google.com/identity/images/g-logo.png',
+                      'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
                       height: 20,
                       width: 20,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 22, color: Colors.red),
                     ),
                     const SizedBox(width: 8),
                     const Text('Google', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),

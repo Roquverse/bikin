@@ -4,7 +4,7 @@ import '../domain/models/video_model.dart';
 import '../domain/models/ticket_tier_model.dart';
 import '../domain/models/comment_model.dart';
 import '../../../../core/utils/logger_util.dart';
-import '../../../auth/data/api/auth_api_client.dart';
+import '../../auth/data/api/auth_api_client.dart';
 
 part 'feed_repository.g.dart';
 
@@ -98,7 +98,7 @@ class FeedRepositoryImpl implements FeedRepository {
 }
 
 @riverpod
-FeedRepository feedRepository(FeedRepositoryRef ref) {
-  final dio = ref.watch(authApiClientProvider);
-  return FeedRepositoryImpl(dio);
+FeedRepository feedRepository(Ref ref) {
+  final client = ref.watch(authApiClientProvider);
+  return FeedRepositoryImpl(client.dio);
 }

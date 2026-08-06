@@ -9,14 +9,13 @@ import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/account_type_screen.dart';
-import '../widgets/theme_preview_screen.dart';
-
-import '../../features/feed/presentation/screens/home_feed_screen.dart';
+import '../widgets/main_shell.dart';
+import '../../features/tickets/presentation/screens/bookings_screen.dart';
 
 part 'app_router.g.dart';
 
 // Slide + Fade custom transition
-CustomTransitionPage buildSlideFadeTransition<T>({
+CustomTransitionPage<T> buildSlideFadeTransition<T>({
   required BuildContext context,
   required GoRouterState state,
   required Widget child,
@@ -44,29 +43,11 @@ CustomTransitionPage buildSlideFadeTransition<T>({
   );
 }
 
-// Placeholder for non-auth routes
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const PlaceholderScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text('Placeholder for $title')),
-    );
-  }
-}
-
 @riverpod
 GoRouter goRouter(Ref ref) {
   return GoRouter(
     initialLocation: '/splash',
     routes: [
-      GoRoute(
-        path: '/theme-preview',
-        builder: (context, state) => const ThemePreviewScreen(),
-      ),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
@@ -122,25 +103,18 @@ GoRouter goRouter(Ref ref) {
           child: const AccountTypeScreen(),
         ),
       ),
+      // Main app shell — contains bottom nav + all tabs
       GoRoute(
         path: '/home-feed',
-        builder: (context, state) => const HomeFeedScreen(),
+        builder: (context, state) => const MainShell(),
       ),
       GoRoute(
-        path: '/booking-sheet',
-        builder: (context, state) => const PlaceholderScreen(title: 'Booking Sheet'),
-      ),
-      GoRoute(
-        path: '/checkout',
-        builder: (context, state) => const PlaceholderScreen(title: 'Checkout'),
-      ),
-      GoRoute(
-        path: '/ticket',
-        builder: (context, state) => const PlaceholderScreen(title: 'Ticket'),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const PlaceholderScreen(title: 'Profile'),
+        path: '/bookings',
+        pageBuilder: (context, state) => buildSlideFadeTransition(
+          context: context,
+          state: state,
+          child: const BookingsScreen(),
+        ),
       ),
     ],
   );

@@ -53,7 +53,7 @@ export class FeedService {
       organizerAvatarUrl: `https://i.pravatar.cc/150?u=${event.organizerId}`,
       likesCount: event._count.likes,
       commentsCount: event._count.comments,
-      hasTickets: event._count.tickets > 0,
+      hasTickets: event.price > 0,
       isLikedByMe: event.likes && event.likes.length > 0,
       isFollowingOrganizer: false, // Can be extended with Follows table
     }));
