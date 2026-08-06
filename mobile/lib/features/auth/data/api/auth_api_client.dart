@@ -20,7 +20,7 @@ class AuthApiClient {
 AuthApiClient authApiClient(Ref ref) {
   final String baseUrl = !kReleaseMode 
       ? (Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000') 
-      : 'https://api.bikin.example.com/v1';
+      : 'https://backend-production-cb05.up.railway.app';
 
   final dio = Dio(BaseOptions(
     baseUrl: baseUrl,
