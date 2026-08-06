@@ -17,4 +17,11 @@ export class UsersService {
   async findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
+
+  async updateRole(id: string, role: Role): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data: { role },
+    });
+  }
 }

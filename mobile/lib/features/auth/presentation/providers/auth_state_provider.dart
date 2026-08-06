@@ -41,4 +41,10 @@ class AuthState extends _$AuthState {
     await ref.read(authRepositoryProvider).logout();
     state = const AsyncValue.data(null);
   }
+
+  Future<void> refreshUser() async {
+    state = await AsyncValue.guard(() async {
+      return ref.read(authRepositoryProvider).getCurrentUser();
+    });
+  }
 }

@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { RedisService } from '../common/redis/redis.service';
 import { MailService } from '../common/mail/mail.service';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -88,7 +89,6 @@ export class AuthService {
     };
   }
 
-
   async login(loginDto: LoginDto) {
     const user = await this.usersService.findByEmail(loginDto.email);
     if (!user) {
@@ -112,5 +112,10 @@ export class AuthService {
         role: user.role,
       }
     };
+  }
+
+  async setAccountType(userId: string, roleName: string) {
+    const role = roleName.toUpperCase() === 'ORGANIZER' ? Role.ORGANIZER : Role.ATTENDEE;
+    return this.usersService.updateRole(userId, role);
   }
 }

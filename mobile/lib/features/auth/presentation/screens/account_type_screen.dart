@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../providers/auth_state_provider.dart';
 import '../widgets/animated_button_wrapper.dart';
 import '../widgets/account_type_card.dart';
 
-class AccountTypeScreen extends StatefulWidget {
+class AccountTypeScreen extends ConsumerStatefulWidget {
   const AccountTypeScreen({super.key});
 
   @override
-  State<AccountTypeScreen> createState() => _AccountTypeScreenState();
+  ConsumerState<AccountTypeScreen> createState() => _AccountTypeScreenState();
 }
 
-class _AccountTypeScreenState extends State<AccountTypeScreen> {
+class _AccountTypeScreenState extends ConsumerState<AccountTypeScreen> {
   String _selectedType = 'Attendee'; // Default
   bool _isLoading = false;
 
   Future<void> _handleContinue() async {
     setState(() => _isLoading = true);
-    // In a real app, call the authRepository to set account type
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Call authRepository to save the selected account type in database
+      await ref.read(authRepositoryProvider).setAccountType(_selectedType);
+      // Reload user data so the active authState has the updated role
+      await ref.read(authStateProvider.notifier).refreshUser();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to set account type: $e')),
+        );
+      }
+    }
     setState(() => _isLoading = false);
 
     if (mounted) context.go('/home-feed');
