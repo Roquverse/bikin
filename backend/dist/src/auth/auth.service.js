@@ -48,8 +48,6 @@ const users_service_1 = require("../users/users.service");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
 let AuthService = class AuthService {
-    usersService;
-    jwtService;
     constructor(usersService, jwtService) {
         this.usersService = usersService;
         this.jwtService = jwtService;

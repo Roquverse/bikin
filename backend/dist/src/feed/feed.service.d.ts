@@ -9,12 +9,12 @@ export declare class FeedService {
         caption: string;
         hashtags: never[];
         organizerId: string;
-        organizerName: any;
+        organizerName: string;
         organizerAvatarUrl: string;
-        likesCount: any;
-        commentsCount: any;
+        likesCount: number;
+        commentsCount: number;
         hasTickets: boolean;
-        isLikedByMe: any;
+        isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
     }[]>;
 }

@@ -14,11 +14,10 @@ const common_1 = require("@nestjs/common");
 const axios_1 = require("@nestjs/axios");
 const rxjs_1 = require("rxjs");
 let MediaService = class MediaService {
-    httpService;
-    bunnyApiKey = process.env.BUNNY_API_KEY;
-    bunnyLibraryId = process.env.BUNNY_LIBRARY_ID;
     constructor(httpService) {
         this.httpService = httpService;
+        this.bunnyApiKey = process.env.BUNNY_API_KEY;
+        this.bunnyLibraryId = process.env.BUNNY_LIBRARY_ID;
     }
     async createVideo(title) {
         if (!this.bunnyApiKey || !this.bunnyLibraryId) {

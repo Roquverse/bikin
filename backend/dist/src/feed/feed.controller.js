@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const feed_service_1 = require("./feed.service");
 const optional_jwt_auth_guard_1 = require("../auth/guards/optional-jwt-auth.guard");
 let FeedController = class FeedController {
-    feedService;
     constructor(feedService) {
         this.feedService = feedService;
     }

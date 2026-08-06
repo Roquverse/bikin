@@ -12,7 +12,7 @@ export declare class AuthService {
             id: string;
             name: string;
             email: string;
-            role: import("@prisma/client").$Enums.Role;
+            role: import(".prisma/client").$Enums.Role;
         };
     }>;
     login(loginDto: LoginDto): Promise<{
@@ -21,7 +21,7 @@ export declare class AuthService {
             id: string;
             name: string;
             email: string;
-            role: import("@prisma/client").$Enums.Role;
+            role: import(".prisma/client").$Enums.Role;
         };
     }>;
 }

@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const media_service_1 = require("./media.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let MediaController = class MediaController {
-    mediaService;
     constructor(mediaService) {
         this.mediaService = mediaService;
     }

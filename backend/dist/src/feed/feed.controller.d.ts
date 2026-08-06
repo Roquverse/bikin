@@ -1,5 +1,5 @@
 import { FeedService } from './feed.service';
-import { Request } from 'express';
+import type { Request } from 'express';
 export declare class FeedController {
     private readonly feedService;
     constructor(feedService: FeedService);
@@ -10,12 +10,12 @@ export declare class FeedController {
         caption: string;
         hashtags: never[];
         organizerId: string;
-        organizerName: any;
+        organizerName: string;
         organizerAvatarUrl: string;
-        likesCount: any;
-        commentsCount: any;
+        likesCount: number;
+        commentsCount: number;
         hasTickets: boolean;
-        isLikedByMe: any;
+        isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
     }[]>;
 }

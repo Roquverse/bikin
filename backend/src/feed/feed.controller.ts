@@ -1,7 +1,7 @@
 import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { FeedService } from './feed.service';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @Controller('feed')
 export class FeedController {
