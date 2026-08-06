@@ -216,14 +216,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                             const SizedBox(height: 24),
 
                             // Stats
-                            const Row(
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _StatColumn(count: '1.2k', label: 'FOLLOWERS'),
-                                SizedBox(width: 24),
+                                const _StatColumn(count: '1.2k', label: 'FOLLOWERS'),
+                                const SizedBox(width: 24),
                                 Container(height: 24, width: 1, color: AppColors.secondary),
-                                SizedBox(width: 24),
-                                _StatColumn(count: '842', label: 'FOLLOWING'),
+                                const SizedBox(width: 24),
+                                const _StatColumn(count: '842', label: 'FOLLOWING'),
                               ],
                             ),
                             const SizedBox(height: 24),
