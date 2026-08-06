@@ -19,14 +19,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-    
-    // Check if user is already logged in
-    final authState = ref.read(authStateProvider);
-    if (authState.value != null) {
-      context.go('/home-feed');
-    } else {
+    final startTime = DateTime.now();
+    try {
+      // Await the provider's future directly so we know if there is a valid session
+      final user = await ref.read(authStateProvider.future);
+      final elapsed = DateTime.now().difference(startTime);
+      if (elapsed.inMilliseconds < 1500) {
+        await Future.delayed(Duration(milliseconds: 1500 - elapsed.inMilliseconds));
+      }
+      if (!mounted) return;
+      if (user != null) {
+        context.go('/home-feed');
+      } else {
+        context.go('/onboarding');
+      }
+    } catch (e) {
+      final elapsed = DateTime.now().difference(startTime);
+      if (elapsed.inMilliseconds < 1500) {
+        await Future.delayed(Duration(milliseconds: 1500 - elapsed.inMilliseconds));
+      }
+      if (!mounted) return;
       context.go('/onboarding');
     }
   }

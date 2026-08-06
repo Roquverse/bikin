@@ -14,8 +14,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // We could fetch the user here if we want to ensure they still exist in DB
-    // Or just return the decoded payload for performance
-    return { id: payload.sub, email: payload.email, role: payload.role };
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) return null;
+    
+    // Return user info excluding password
+    const { password, ...result } = user;
+    return result;
   }
 }

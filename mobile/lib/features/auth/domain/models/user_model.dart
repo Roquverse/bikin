@@ -14,12 +14,12 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    final role = json['role'] as String? ?? 'ATTENDEE';
+    final role = (json['role'] as String?) ?? 'ATTENDEE';
     return UserModel(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      name: json['name'] as String,
-      accountType: json['account_type'] as String? ?? role,
+      id: (json['id'] as String?) ?? '',
+      email: (json['email'] as String?) ?? '',
+      name: (json['name'] as String?) ?? (json['email'] as String?) ?? 'User',
+      accountType: (json['account_type'] as String?) ?? (role == 'ORGANIZER' ? 'Organizer' : 'Attendee'),
       role: role,
     );
   }
