@@ -29,6 +29,25 @@ class VideoModel {
     required this.isFollowingOrganizer,
   });
 
+  factory VideoModel.fromJson(Map<String, dynamic> json) {
+    return VideoModel(
+      id: json['id']?.toString() ?? '',
+      videoUrl: json['videoUrl'] ?? json['mediaUrl'] ?? '',
+      thumbnailUrl: json['thumbnailUrl'] ?? json['mediaUrl'] ?? '',
+      caption: json['title'] ?? '',
+      hashtags: List<String>.from(json['hashtags'] ?? []),
+      organizerId: json['organizerId'] ?? '',
+      organizerName: json['organizerName'] ?? json['organizer']?['name'] ?? 'Unknown',
+      organizerAvatarUrl: json['organizerAvatarUrl'] ?? json['organizer']?['avatarUrl'] ?? 'https://i.pravatar.cc/150',
+      likesCount: json['likesCount'] ?? 0,
+      commentsCount: json['commentsCount'] ?? 0,
+      hasTickets: (json['price'] != null && (json['price'] as num) > 0),
+      isLikedByMe: json['isLikedByMe'] ?? false,
+      isFollowingOrganizer: json['isFollowingOrganizer'] ?? false,
+    );
+  }
+
+
   VideoModel copyWith({
     int? likesCount,
     int? commentsCount,

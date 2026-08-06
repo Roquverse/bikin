@@ -71,10 +71,10 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     }
   }
 
-  void _disposeController() {
+  void _disposeController({bool isDisposing = false}) {
     _controller?.dispose();
     _controller = null;
-    if (mounted) {
+    if (!isDisposing && mounted) {
       setState(() {
         _isInitialized = false;
       });
@@ -83,7 +83,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
   @override
   void dispose() {
-    _disposeController();
+    _disposeController(isDisposing: true);
     super.dispose();
   }
 
