@@ -28,12 +28,15 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     super.dispose();
   }
 
-  void _openComments(String videoId) {
+  void _openComments(String videoId, int commentsCount) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => CommentsSheet(videoId: videoId),
+      builder: (context) => CommentsSheet(
+        videoId: videoId,
+        commentsCount: commentsCount,
+      ),
     );
   }
 
@@ -52,54 +55,113 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
-      body: feedState.when(
-        data: (videos) {
-          if (videos.isEmpty) {
-            return const Center(child: Text('No videos found', style: TextStyle(color: AppColors.offWhite)));
-          }
-          
-          return PageView.builder(
-            controller: _pageController,
-            scrollDirection: Axis.vertical,
-            itemCount: videos.length,
-            onPageChanged: (index) {
-              setState(() => _currentIndex = index);
-              if (index == videos.length - 2) {
-                ref.read(feedProvider.notifier).loadMore();
+      body: Stack(
+        children: [
+          // Video Feed PageView
+          feedState.when(
+            data: (videos) {
+              if (videos.isEmpty) {
+                return const Center(child: Text('No videos found', style: TextStyle(color: AppColors.offWhite)));
               }
-            },
-            itemBuilder: (context, index) {
-              final video = videos[index];
-              final isActive = _currentIndex == index;
-              
-              // Only initialize current, next two, and previous one
-              final shouldInitialize = (index - _currentIndex).abs() <= 2;
 
-              return HeartBurstAnimator(
-                onDoubleTap: () => ref.read(videoInteractionProvider(video.id).notifier).toggleLike(),
-                child: Stack(
-                  children: [
-                    VideoPlayerItem(
-                      videoUrl: video.videoUrl,
-                      isActive: isActive,
-                      shouldInitialize: shouldInitialize,
+              return PageView.builder(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                itemCount: videos.length,
+                onPageChanged: (index) {
+                  setState(() => _currentIndex = index);
+                  if (index == videos.length - 2) {
+                    ref.read(feedProvider.notifier).loadMore();
+                  }
+                },
+                itemBuilder: (context, index) {
+                  final video = videos[index];
+                  final isActive = _currentIndex == index;
+                  final shouldInitialize = (index - _currentIndex).abs() <= 2;
+
+                  return HeartBurstAnimator(
+                    onDoubleTap: () => ref.read(videoInteractionProvider(video.id).notifier).toggleLike(),
+                    child: Stack(
+                      children: [
+                        VideoPlayerItem(
+                          videoUrl: video.videoUrl,
+                          isActive: isActive,
+                          shouldInitialize: shouldInitialize,
+                        ),
+                        FeedOverlay(videoId: video.id),
+                        InteractionRail(
+                          videoId: video.id,
+                          onOpenComments: () => _openComments(video.id, video.commentsCount),
+                          onOpenTickets: () => _openTickets(video.id),
+                        ),
+                      ],
                     ),
-                    FeedOverlay(videoId: video.id),
-                    InteractionRail(
-                      videoId: video.id,
-                      onOpenComments: () => _openComments(video.id),
-                      onOpenTickets: () => _openTickets(video.id),
-                    ),
-                  ],
-                ),
+                  );
+                },
               );
             },
-          );
-        },
-        loading: () => const FeedShimmer(),
-        error: (error, stack) => Center(
-          child: Text('Error loading feed: $error', style: const TextStyle(color: AppColors.error)),
-        ),
+            loading: () => const FeedShimmer(),
+            error: (error, stack) => Center(
+              child: Text('Error loading feed: $error', style: const TextStyle(color: AppColors.error)),
+            ),
+          ),
+
+          // Header Overlay (Mockup screen 1 design)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 16,
+            right: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Location Picker Pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(80),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withAlpha(30), width: 0.5),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 14, color: AppColors.success),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Lagos',
+                        style: TextStyle(
+                          color: AppColors.offWhite,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.offWhite),
+                    ],
+                  ),
+                ),
+
+                // Search Icon
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(80),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withAlpha(30), width: 0.5),
+                    ),
+                    child: const Icon(
+                      Icons.search,
+                      color: AppColors.offWhite,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

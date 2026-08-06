@@ -28,7 +28,7 @@ class _InteractionRailState extends ConsumerState<InteractionRail> with SingleTi
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
   }
 
@@ -43,11 +43,12 @@ class _InteractionRailState extends ConsumerState<InteractionRail> with SingleTi
     final video = ref.watch(videoInteractionProvider(widget.videoId));
 
     return Positioned(
-      right: 16,
-      bottom: 40,
+      right: 12,
+      bottom: 70, // Keep offset slightly above the navigation bar area
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // Yellow ticket booking button (Mockup style)
           if (video.hasTickets) ...[
             GestureDetector(
               onTap: widget.onOpenTickets,
@@ -55,33 +56,27 @@ class _InteractionRailState extends ConsumerState<InteractionRail> with SingleTi
                 animation: _pulseController,
                 builder: (context, child) {
                   return Transform.scale(
-                    scale: 1.0 + (_pulseController.value * 0.1),
+                    scale: 1.0 + (_pulseController.value * 0.05),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
                         color: AppColors.accentCta,
-                        borderRadius: BorderRadius.circular(20),
+                        shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.accentCta.withOpacity(0.5 * _pulseController.value),
-                            blurRadius: 10,
+                            color: AppColors.accentCta.withAlpha((40 + (_pulseController.value * 80)).toInt()),
+                            blurRadius: 12,
                             spreadRadius: 2,
                           ),
                         ],
                       ),
-                      child: const Column(
-                        children: [
-                          Icon(Icons.local_activity, color: AppColors.primaryBackground, size: 24),
-                          SizedBox(height: 4),
-                          Text(
-                            'Get Tickets',
-                            style: TextStyle(
-                              color: AppColors.primaryBackground,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      child: const Center(
+                        child: Icon(
+                          Icons.local_activity,
+                          color: AppColors.primaryBackground,
+                          size: 24,
+                        ),
                       ),
                     ),
                   );
@@ -90,21 +85,27 @@ class _InteractionRailState extends ConsumerState<InteractionRail> with SingleTi
             ),
             const SizedBox(height: 24),
           ],
+
+          // Like Button (Mockup style)
           _InteractionButton(
             icon: video.isLikedByMe ? Icons.favorite : Icons.favorite_border,
-            color: video.isLikedByMe ? AppColors.accentCta : Colors.white,
-            label: video.likesCount.toString(),
+            color: video.isLikedByMe ? Colors.red[400]! : Colors.white,
+            label: _formatCount(video.likesCount),
             onTap: () => ref.read(videoInteractionProvider(widget.videoId).notifier).toggleLike(),
             isAnimated: true,
             isActive: video.isLikedByMe,
           ),
           const SizedBox(height: 20),
+
+          // Comment Button (Mockup style)
           _InteractionButton(
             icon: Icons.chat_bubble_outline,
-            label: video.commentsCount.toString(),
+            label: _formatCount(video.commentsCount),
             onTap: widget.onOpenComments,
           ),
           const SizedBox(height: 20),
+
+          // Share Button (Mockup style)
           _InteractionButton(
             icon: Icons.share_outlined,
             label: 'Share',
@@ -115,6 +116,13 @@ class _InteractionRailState extends ConsumerState<InteractionRail> with SingleTi
         ],
       ),
     );
+  }
+
+  String _formatCount(int count) {
+    if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}k';
+    }
+    return count.toString();
   }
 }
 
@@ -179,25 +187,15 @@ class _InteractionButtonState extends State<_InteractionButton> with SingleTicke
               scale: _scaleAnimation.value,
               child: child,
             ),
-            child: Icon(widget.icon, color: widget.color, size: 36),
+            child: Icon(widget.icon, color: widget.color, size: 28),
           ),
-          const SizedBox(height: 4),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, animation) {
-              return SlideTransition(
-                position: Tween<Offset>(begin: const Offset(0.0, -0.5), end: Offset.zero).animate(animation),
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
-            child: Text(
-              widget.label,
-              key: ValueKey(widget.label),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
+          const SizedBox(height: 6),
+          Text(
+            widget.label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
             ),
           ),
         ],

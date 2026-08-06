@@ -1,7 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/buttons/primary_button.dart';
 import '../providers/ticket_booking_provider.dart';
 
 class TicketBookingSheet extends ConsumerStatefulWidget {
@@ -15,31 +15,37 @@ class TicketBookingSheet extends ConsumerStatefulWidget {
 
 class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
   bool _isBooking = false;
+  String? _selectedTierId;
 
-  void _handleBooking() async {
+  void _handleBooking(double totalAmount) async {
+    if (_selectedTierId == null) return;
     setState(() => _isBooking = true);
     try {
+      // Book 1 ticket of the selected tier
       await ref.read(ticketBookingProvider(widget.videoId).notifier).bookTickets();
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tickets booked successfully!')),
+          const SnackBar(
+            backgroundColor: AppColors.success,
+            content: Text('Tickets booked successfully!', style: TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.bold)),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isBooking = false);
-        // Display inline error state
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
             backgroundColor: AppColors.surfaceElevated,
-            title: const Text('Booking Failed', style: TextStyle(color: AppColors.error)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Booking Failed', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
             content: Text(e.toString(), style: const TextStyle(color: AppColors.offWhite)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('OK', style: TextStyle(color: AppColors.accentCta)),
+                child: const Text('OK', style: TextStyle(color: AppColors.accentCta, fontWeight: FontWeight.bold)),
               )
             ],
           ),
@@ -52,177 +58,356 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
   Widget build(BuildContext context) {
     final tiersAsync = ref.watch(ticketTiersProvider(widget.videoId));
     final selections = ref.watch(ticketBookingProvider(widget.videoId));
-    final totalItems = ref.watch(ticketBookingProvider(widget.videoId).notifier).totalItems;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surfaceElevated,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0C241B).withAlpha(240),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.tertiaryNeutral,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Select Tickets',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.offWhite,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: tiersAsync.when(
-                  data: (tiers) {
-                    final totalAmount = ref.watch(ticketBookingProvider(widget.videoId).notifier).calculateTotal(tiers);
-                    return Column(
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.85,
+            minChildSize: 0.6,
+            maxChildSize: 0.95,
+            builder: (context, scrollController) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  // Handle indicator
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withAlpha(80),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Event Info Header block (Mock info styled premium like mockup image 2)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: ListView.separated(
-                            controller: scrollController,
-                            padding: const EdgeInsets.all(24),
-                            itemCount: tiers.length,
-                            separatorBuilder: (_, __) => const Divider(color: AppColors.tertiaryNeutral),
-                            itemBuilder: (context, index) {
-                              final tier = tiers[index];
-                              final currentQty = selections[tier.id] ?? 0;
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
+                        const Text(
+                          'Eko Electronic Summer Pop-up',
+                          style: TextStyle(
+                            color: AppColors.offWhite,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, size: 14, color: AppColors.secondary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Landmark Beach, Lagos',
+                              style: TextStyle(
+                                color: AppColors.secondary.withAlpha(220),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today, size: 14, color: AppColors.secondary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Saturday, Dec 23 · 8:00 PM',
+                              style: TextStyle(
+                                color: AppColors.secondary.withAlpha(220),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'Select Tickets',
+                      style: TextStyle(
+                        color: AppColors.offWhite,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Tiers listing
+                  Expanded(
+                    child: tiersAsync.when(
+                      data: (tiers) {
+                        if (tiers.isEmpty) {
+                          return const Center(
+                            child: Text('No ticket tiers available', style: TextStyle(color: AppColors.offWhite)),
+                          );
+                        }
+
+                        // Auto-select first tier if none is selected
+                        if (_selectedTierId == null && tiers.isNotEmpty) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            setState(() {
+                              _selectedTierId = tiers.first.id;
+                              ref.read(ticketBookingProvider(widget.videoId).notifier).increment(tiers.first.id, tiers.first.availableQuantity);
+                            });
+                          });
+                        }
+
+                        final selectedTier = tiers.firstWhere((t) => t.id == _selectedTierId, orElse: () => tiers.first);
+                        final totalAmount = selectedTier.price;
+
+                        return Column(
+                          children: [
+                            Expanded(
+                              child: ListView.builder(
+                                controller: scrollController,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                itemCount: tiers.length,
+                                itemBuilder: (context, index) {
+                                  final tier = tiers[index];
+                                  final isSelected = _selectedTierId == tier.id;
+
+                                  // Labels matching mockup tags
+                                  String? tagLabel;
+                                  Color tagBg = Colors.transparent;
+                                  Color tagText = Colors.transparent;
+                                  if (tier.name.toLowerCase().contains('regular')) {
+                                    tagLabel = 'Selling fast';
+                                    tagBg = const Color(0xFFFFBA00).withAlpha(30);
+                                    tagText = const Color(0xFFFFBA00);
+                                  } else if (tier.name.toLowerCase().contains('vip')) {
+                                    tagLabel = 'Limited';
+                                    tagBg = const Color(0xFF6D9773).withAlpha(30);
+                                    tagText = const Color(0xFF6D9773);
+                                  } else if (tier.name.toLowerCase().contains('table')) {
+                                    tagLabel = '2 left';
+                                    tagBg = const Color(0xFFE57373).withAlpha(30);
+                                    tagText = const Color(0xFFE57373);
+                                  }
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() => _selectedTierId = tier.id);
+                                      // Reset other selections, set selected tier to 1 qty
+                                      final notifier = ref.read(ticketBookingProvider(widget.videoId).notifier);
+                                      // Clear existing
+                                      for (final t in tiers) {
+                                        if (selections.containsKey(t.id)) {
+                                          notifier.decrement(t.id);
+                                        }
+                                      }
+                                      notifier.increment(tier.id, tier.availableQuantity);
+                                    },
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      margin: const EdgeInsets.only(bottom: 16),
+                                      padding: const EdgeInsets.all(18),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.surfaceElevated.withAlpha(220)
+                                            : AppColors.surfaceElevated.withAlpha(90),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.accentCta.withAlpha(180)
+                                              : AppColors.secondary.withAlpha(30),
+                                          width: isSelected ? 1.5 : 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    tier.name,
+                                                    style: const TextStyle(
+                                                      color: AppColors.offWhite,
+                                                      fontSize: 15.5,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  if (tagLabel != null) ...[
+                                                    const SizedBox(width: 8),
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                      decoration: BoxDecoration(
+                                                        color: tagBg,
+                                                        borderRadius: BorderRadius.circular(10),
+                                                      ),
+                                                      child: Text(
+                                                        tagLabel,
+                                                        style: TextStyle(
+                                                          color: tagText,
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                '₦${tier.price.toStringAsFixed(0)}',
+                                                style: const TextStyle(
+                                                  color: AppColors.offWhite,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          // Radio custom selector
+                                          Container(
+                                            width: 22,
+                                            height: 22,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: isSelected ? AppColors.accentCta : AppColors.secondary.withAlpha(100),
+                                                width: 2,
+                                              ),
+                                            ),
+                                            child: isSelected
+                                                ? Center(
+                                                    child: Container(
+                                                      width: 12,
+                                                      height: 12,
+                                                      decoration: const BoxDecoration(
+                                                        color: AppColors.accentCta,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : null,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+
+                            // Total and action footer
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(24, 20, 24, 30),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0C241B),
+                                border: Border(top: BorderSide(color: AppColors.secondary.withAlpha(30))),
+                              ),
+                              child: SafeArea(
+                                top: false,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          tier.name,
-                                          style: const TextStyle(
-                                            fontSize: 16,
+                                          'TOTAL',
+                                          style: TextStyle(
+                                            color: AppColors.secondary.withAlpha(200),
+                                            fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.offWhite,
+                                            letterSpacing: 0.5,
                                           ),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '₦${tier.price.toStringAsFixed(0)}',
+                                          '₦${totalAmount.toStringAsFixed(0)}',
                                           style: const TextStyle(
-                                            color: AppColors.accentCta,
-                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.offWhite,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: currentQty > 0
-                                            ? () => ref.read(ticketBookingProvider(widget.videoId).notifier).decrement(tier.id)
-                                            : null,
-                                        icon: const Icon(Icons.remove_circle_outline),
-                                        color: currentQty > 0 ? AppColors.offWhite : AppColors.tertiaryNeutral,
-                                      ),
-                                      SizedBox(
-                                        width: 32,
-                                        child: Text(
-                                          currentQty.toString(),
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.offWhite,
+                                    GestureDetector(
+                                      onTap: () => _handleBooking(totalAmount),
+                                      child: Container(
+                                        height: 52,
+                                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [Color(0xFFBB8A52), Color(0xFFFFBA00)],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
                                           ),
+                                          borderRadius: BorderRadius.circular(26),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppColors.accentCta.withAlpha(50),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 4),
+                                            )
+                                          ],
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            if (_isBooking)
+                                              const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child: CircularProgressIndicator(color: AppColors.primaryBackground, strokeWidth: 2),
+                                              )
+                                            else ...[
+                                              const Text(
+                                                'Book Now',
+                                                style: TextStyle(
+                                                  color: AppColors.primaryBackground,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Icon(Icons.arrow_forward_rounded, size: 18, color: AppColors.primaryBackground),
+                                            ],
+                                          ],
                                         ),
                                       ),
-                                      IconButton(
-                                        onPressed: currentQty < tier.availableQuantity
-                                            ? () => ref.read(ticketBookingProvider(widget.videoId).notifier).increment(tier.id, tier.availableQuantity)
-                                            : null,
-                                        icon: const Icon(Icons.add_circle_outline),
-                                        color: currentQty < tier.availableQuantity ? AppColors.accentCta : AppColors.tertiaryNeutral,
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryBackground,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, -5),
-                              )
-                            ],
-                          ),
-                          child: SafeArea(
-                            top: false,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'Total ($totalItems items)',
-                                        style: TextStyle(
-                                          color: AppColors.offWhite.withOpacity(0.7),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      Text(
-                                        '₦${totalAmount.toStringAsFixed(0)}',
-                                        style: const TextStyle(
-                                          color: AppColors.accentCta,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(
-                                  width: 140,
-                                  child: PrimaryButton(
-                                    text: 'Book Now',
-                                    isLoading: _isBooking,
-                                    onPressed: totalItems > 0 ? _handleBooking : null,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
-                  error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: AppColors.error))),
-                ),
-              ),
-            ],
+                          ],
+                        );
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
+                      error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: AppColors.error))),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
