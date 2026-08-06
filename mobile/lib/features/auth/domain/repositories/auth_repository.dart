@@ -87,8 +87,8 @@ class AuthRepositoryImpl implements AuthRepository {
     if (token == null) return null;
 
     try {
-      final response = await _apiClient.dio.get('/auth/me');
-      return UserModel.fromJson(response.data['user']);
+      final response = await _apiClient.dio.get('/users/me');
+      return UserModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       LoggerUtil.error('Failed to fetch current user', e);
       return null;
