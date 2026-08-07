@@ -25,6 +25,10 @@ export declare class UsersService {
             date: Date;
         }[];
         eventsAttendedCount: number;
+        eventsHostedCount: number;
+        totalAttendeesCount: number;
+        upcomingEventCount: number;
+        avgReelEngagement: number;
     }>;
     getUserEvents(userId: string): Promise<{
         id: string;
@@ -42,6 +46,8 @@ export declare class UsersService {
         hasTickets: boolean;
         isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
+        ticketsSold: number;
+        capacity: number;
     }[]>;
     getUserTickets(userId: string): Promise<({
         event: {

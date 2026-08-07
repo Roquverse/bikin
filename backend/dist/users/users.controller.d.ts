@@ -4,10 +4,10 @@ export declare class UsersController {
     constructor(usersService: UsersService);
     getProfile(req: any): any;
     updateProfile(req: any, data: any): Promise<{
-        name: string;
         id: string;
         email: string;
         password: string;
+        name: string;
         avatarUrl: string | null;
         bio: string | null;
         role: import(".prisma/client").$Enums.Role;
@@ -26,6 +26,10 @@ export declare class UsersController {
             date: Date;
         }[];
         eventsAttendedCount: number;
+        eventsHostedCount: number;
+        totalAttendeesCount: number;
+        upcomingEventCount: number;
+        avgReelEngagement: number;
     }>;
     getMyEvents(req: any): Promise<{
         id: string;
@@ -43,6 +47,8 @@ export declare class UsersController {
         hasTickets: boolean;
         isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
+        ticketsSold: number;
+        capacity: number;
     }[]>;
     getMyTickets(req: any): Promise<({
         event: {

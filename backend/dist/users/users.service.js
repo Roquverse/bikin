@@ -65,6 +65,10 @@ let UsersService = class UsersService {
         }
         let walletBalance = 0;
         let recentSales = [];
+        let eventsHostedCount = 0;
+        let totalAttendeesCount = 0;
+        let upcomingEventCount = 0;
+        let avgReelEngagement = 0;
         if (user.role === 'ORGANIZER') {
             const events = await this.prisma.event.findMany({
                 where: { organizerId: userId },
@@ -76,11 +80,21 @@ let UsersService = class UsersService {
                             event: { select: { title: true } }
                         },
                         orderBy: { createdAt: 'desc' }
+                    },
+                    _count: {
+                        select: { likes: true, comments: true }
                     }
                 }
             });
+            eventsHostedCount = events.length;
+            const now = new Date();
+            let totalEngagement = 0;
             events.forEach(event => {
+                if (event.date > now)
+                    upcomingEventCount++;
                 walletBalance += event.price * event.tickets.length;
+                totalAttendeesCount += event.tickets.length;
+                totalEngagement += event._count.likes + event._count.comments;
                 recentSales.push(...event.tickets.map(t => ({
                     ticketId: t.id,
                     buyerName: t.user.name,
@@ -89,6 +103,9 @@ let UsersService = class UsersService {
                     date: t.createdAt
                 })));
             });
+            if (eventsHostedCount > 0) {
+                avgReelEngagement = Math.round(totalEngagement / eventsHostedCount);
+            }
             recentSales.sort((a, b) => b.date.getTime() - a.date.getTime());
             recentSales = recentSales.slice(0, 10);
         }
@@ -97,7 +114,11 @@ let UsersService = class UsersService {
             followingCount: user._count.following,
             walletBalance,
             recentSales,
-            eventsAttendedCount
+            eventsAttendedCount,
+            eventsHostedCount,
+            totalAttendeesCount,
+            upcomingEventCount,
+            avgReelEngagement
         };
     }
     async getUserEvents(userId) {
@@ -114,26 +135,35 @@ let UsersService = class UsersService {
                 likes: {
                     where: { userId },
                     take: 1
+                },
+                tiers: {
+                    select: { capacity: true }
                 }
             }
         });
-        return events.map((event) => ({
-            id: event.id,
-            date: event.date.toISOString(),
-            location: event.location,
-            videoUrl: event.mediaUrl,
-            thumbnailUrl: event.mediaUrl,
-            caption: event.description || event.title,
-            hashtags: [],
-            organizerId: event.organizerId,
-            organizerName: event.organizer.name,
-            organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
-            likesCount: event._count.likes,
-            commentsCount: event._count.comments,
-            hasTickets: event.price > 0,
-            isLikedByMe: event.likes && event.likes.length > 0,
-            isFollowingOrganizer: false
-        }));
+        return events.map((event) => {
+            const totalCapacity = event.tiers.reduce((sum, tier) => sum + tier.capacity, 0);
+            const capacity = totalCapacity > 0 ? totalCapacity : 200;
+            return {
+                id: event.id,
+                date: event.date.toISOString(),
+                location: event.location,
+                videoUrl: event.mediaUrl,
+                thumbnailUrl: event.mediaUrl,
+                caption: event.description || event.title,
+                hashtags: [],
+                organizerId: event.organizerId,
+                organizerName: event.organizer.name,
+                organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
+                likesCount: event._count.likes,
+                commentsCount: event._count.comments,
+                hasTickets: event.price > 0,
+                isLikedByMe: event.likes && event.likes.length > 0,
+                isFollowingOrganizer: false,
+                ticketsSold: event._count.tickets,
+                capacity: capacity
+            };
+        });
     }
     async getUserTickets(userId) {
         return this.prisma.ticket.findMany({
