@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/video_interaction_provider.dart';
+import '../../../auth/presentation/providers/auth_state_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FeedOverlay extends ConsumerWidget {
   final String videoId;
@@ -14,6 +16,8 @@ class FeedOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final video = ref.watch(videoInteractionProvider(videoId));
+    final currentUser = ref.watch(authStateProvider).value;
+    final isMyVideo = currentUser?.id == video.organizerId;
     
     return Stack(
       children: [
@@ -67,8 +71,9 @@ class FeedOverlay extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
+                  if (!isMyVideo) ...[
+                    const SizedBox(width: 12),
+                    GestureDetector(
                     onTap: () => ref.read(videoInteractionProvider(videoId).notifier).toggleFollow(),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
@@ -97,12 +102,13 @@ class FeedOverlay extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  ],
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 video.caption,
-                style: const TextStyle(color: AppColors.offWhite, fontSize: 14),
+                style: GoogleFonts.montserrat(color: AppColors.offWhite, fontSize: 16),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),

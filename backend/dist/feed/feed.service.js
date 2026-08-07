@@ -57,7 +57,56 @@ let FeedService = class FeedService {
             date: event.date.toISOString(),
             location: event.location,
             videoUrl: event.mediaUrl,
-            thumbnailUrl: event.mediaUrl,
+            thumbnailUrl: event.thumbnailUrl || event.mediaUrl,
+            caption: event.description || event.title,
+            hashtags: [],
+            organizerId: event.organizerId,
+            organizerName: event.organizer.name,
+            organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
+            likesCount: event._count.likes,
+            commentsCount: event._count.comments,
+            hasTickets: event.price > 0,
+            isLikedByMe: event.likes && event.likes.length > 0,
+            isFollowingOrganizer: false,
+        }));
+    }
+    async getDiscoverFeed(page = 1, limit = 10, userId) {
+        const skip = (page - 1) * limit;
+        const events = await this.prisma.event.findMany({
+            orderBy: {
+                createdAt: 'desc',
+            },
+            skip,
+            take: limit,
+            include: {
+                organizer: {
+                    select: {
+                        id: true,
+                        name: true,
+                        avatarUrl: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                        tickets: true,
+                    },
+                },
+                likes: userId ? {
+                    where: {
+                        userId,
+                    },
+                    take: 1,
+                } : false,
+            },
+        });
+        return events.map(event => ({
+            id: event.id,
+            date: event.date.toISOString(),
+            location: event.location,
+            videoUrl: event.mediaUrl,
+            thumbnailUrl: event.thumbnailUrl || event.mediaUrl,
             caption: event.description || event.title,
             hashtags: [],
             organizerId: event.organizerId,

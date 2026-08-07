@@ -37,6 +37,7 @@ model Event {
   date        DateTime
   location    String
   mediaUrl    String?  // Bunny Stream video/image URL or ID
+  thumbnailUrl String? // Cloudinary image URL for Discover feed
   price       Float    @default(0.0)
   organizerId String
   createdAt   DateTime @default(now())

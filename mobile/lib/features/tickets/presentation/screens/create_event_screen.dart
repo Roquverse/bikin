@@ -32,11 +32,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final TextEditingController _venueController = TextEditingController();
   final TextEditingController _captionController = TextEditingController();
   
-  File? _selectedMedia;
-  bool _isImage = false;
+  File? _selectedImage;
+  File? _selectedVideo;
   VideoPlayerController? _videoController;
   final ImagePicker _picker = ImagePicker();
-  bool _isPickingVideo = false;
+  bool _isPickingMedia = false;
 
   final List<Map<String, dynamic>> _tiers = [
     {'name': 'General Admission', 'price': '5000', 'capacity': '100'}
@@ -46,10 +46,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   void initState() {
     super.initState();
     if (widget.initialMedia != null) {
-      _selectedMedia = widget.initialMedia;
-      _isImage = widget.isInitialMediaImage;
-      if (!_isImage) {
-        _initializeVideo(_selectedMedia!);
+      if (widget.isInitialMediaImage) {
+        _selectedImage = widget.initialMedia;
+      } else {
+        _selectedVideo = widget.initialMedia;
+        _initializeVideo(_selectedVideo!);
       }
     }
   }
@@ -73,30 +74,30 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     super.dispose();
   }
   
-  Future<void> _pickVideo() async {
+  Future<void> _pickMedia({required bool isVideo}) async {
     setState(() {
-      _isPickingVideo = true;
+      _isPickingMedia = true;
     });
     
     try {
-      final XFile? media = await _picker.pickMedia();
+      final XFile? media = isVideo ? await _picker.pickVideo(source: ImageSource.gallery) : await _picker.pickImage(source: ImageSource.gallery);
       
       if (media != null) {
         final file = File(media.path);
-        final ext = media.path.split('.').last.toLowerCase();
-        final isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
-        
-        if (_videoController != null) {
-          await _videoController!.dispose();
-          _videoController = null;
-        }
         
         setState(() {
-          _selectedMedia = file;
-          _isImage = isImg;
+          if (isVideo) {
+            _selectedVideo = file;
+          } else {
+            _selectedImage = file;
+          }
         });
         
-        if (!isImg) {
+        if (isVideo) {
+          if (_videoController != null) {
+            await _videoController!.dispose();
+            _videoController = null;
+          }
           await _initializeVideo(file);
         }
       }
@@ -109,7 +110,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isPickingVideo = false;
+          _isPickingMedia = false;
         });
       }
     }
@@ -252,9 +253,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           Positioned.fill(
             child: GestureDetector(
               onTap: () {
-                if (_videoController == null) {
-                  _pickVideo();
-                } else {
+                if (_videoController == null && _selectedImage == null) {
+                  _pickMedia(isVideo: false); // Default to picking image if empty
+                } else if (_videoController != null) {
                   setState(() {
                     if (_videoController!.value.isPlaying) {
                       _videoController!.pause();
@@ -266,52 +267,50 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               },
               child: Container(
                 color: const Color(0xFF111111),
-                child: _selectedMedia != null
-                  ? (_isImage
-                      ? Image.file(_selectedMedia!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
-                      : (_videoController != null && _videoController!.value.isInitialized
-                          ? FittedBox(
-                              fit: BoxFit.cover,
-                              child: SizedBox(
-                                width: _videoController!.value.size.width,
-                                height: _videoController!.value.size.height,
-                                child: VideoPlayer(_videoController!),
+                child: _selectedVideo != null && _videoController != null && _videoController!.value.isInitialized
+                  ? FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: _videoController!.value.size.width,
+                        height: _videoController!.value.size.height,
+                        child: VideoPlayer(_videoController!),
+                      ),
+                    )
+                  : (_selectedImage != null 
+                      ? Image.file(_selectedImage!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_isPickingMedia)
+                              const CircularProgressIndicator(color: AppColors.accentCta)
+                            else ...[
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withAlpha(15),
+                                  border: Border.all(color: Colors.white.withAlpha(30)),
+                                ),
+                                child: const Icon(Icons.movie_creation_outlined, color: Colors.white, size: 56),
                               ),
-                            )
-                          : const Center(child: CircularProgressIndicator(color: AppColors.accentCta))))
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (_isPickingVideo)
-                          const CircularProgressIndicator(color: AppColors.accentCta)
-                        else ...[
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withAlpha(15),
-                              border: Border.all(color: Colors.white.withAlpha(30)),
-                            ),
-                            child: const Icon(Icons.movie_creation_outlined, color: Colors.white, size: 56),
-                          ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'Tap to upload event media',
-                            style: TextStyle(
-                              color: Colors.white, 
-                              fontSize: 18, 
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Vertical media (9:16) performs best',
-                            style: TextStyle(color: Colors.white60, fontSize: 13),
-                          ),
-                        ]
-                      ],
-                    ),
+                              const SizedBox(height: 24),
+                              const Text(
+                                'Tap to upload event cover',
+                                style: TextStyle(
+                                  color: Colors.white, 
+                                  fontSize: 18, 
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Vertical media (9:16) performs best',
+                                style: TextStyle(color: Colors.white60, fontSize: 13),
+                              ),
+                            ]
+                          ],
+                        )),
               ),
             ),
           ),
@@ -370,9 +369,58 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ),
                       ),
                       const Spacer(),
-                      if (_videoController != null)
+                      if (_selectedImage != null || _selectedVideo != null)
                         GestureDetector(
-                          onTap: _pickVideo,
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.surfaceElevated,
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text('Change Media', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 20),
+                                    ListTile(
+                                      leading: const Icon(Icons.image, color: Colors.white),
+                                      title: const Text('Change Cover Image (Required)', style: TextStyle(color: Colors.white)),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        _pickMedia(isVideo: false);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.movie, color: Colors.white),
+                                      title: const Text('Change Reel Video (Optional)', style: TextStyle(color: Colors.white)),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        _pickMedia(isVideo: true);
+                                      },
+                                    ),
+                                    if (_selectedVideo != null)
+                                      ListTile(
+                                        leading: const Icon(Icons.delete, color: AppColors.error),
+                                        title: const Text('Remove Video', style: TextStyle(color: AppColors.error)),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          setState(() {
+                                            _selectedVideo = null;
+                                            _videoController?.dispose();
+                                            _videoController = null;
+                                          });
+                                        },
+                                      ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
@@ -572,9 +620,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       PrimaryButton(
                         text: _isLoading ? 'Creating Event...' : 'Post & List Event',
                         onPressed: _isLoading ? () {} : () async {
-                          if (_nameController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty || _selectedMedia == null) {
+                          if (_nameController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty || _selectedImage == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please fill all required details and select media')),
+                              const SnackBar(content: Text('Please fill all required details and select a cover image')),
                             );
                             return;
                           }
@@ -584,7 +632,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           });
                           
                           final eventsRepo = ref.read(eventsRepositoryProvider);
-                          final media = _selectedMedia;
                           final title = _nameController.text;
                           final description = _captionController.text;
                           final date = _dateController.text;
@@ -592,9 +639,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           final location = _venueController.text;
                           
                           try {
+                            String? thumbnailUrl;
+                            if (_selectedImage != null) {
+                              thumbnailUrl = await eventsRepo.uploadMedia(_selectedImage!);
+                            }
+                            
                             String? mediaUrl;
-                            if (media != null) {
-                              mediaUrl = await eventsRepo.uploadMedia(media);
+                            if (_selectedVideo != null) {
+                              mediaUrl = await eventsRepo.uploadMedia(_selectedVideo!);
                             }
                             
                             final success = await eventsRepo.createEvent(
@@ -605,6 +657,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                               location: location,
                               price: _tiers.isNotEmpty ? _tiers.first['price'] : '0',
                               mediaUrl: mediaUrl,
+                              thumbnailUrl: thumbnailUrl,
                               tiers: _tiers,
                             );
                             

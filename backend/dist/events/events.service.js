@@ -28,6 +28,7 @@ let EventsService = class EventsService {
                 date: new Date(data.date),
                 location: data.location,
                 mediaUrl: data.mediaUrl,
+                thumbnailUrl: data.thumbnailUrl,
                 price: price,
                 organizerId,
                 tiers: data.tiers && data.tiers.length > 0 ? {

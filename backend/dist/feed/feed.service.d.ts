@@ -7,7 +7,24 @@ export declare class FeedService {
         date: string;
         location: string;
         videoUrl: string | null;
-        thumbnailUrl: string | null;
+        thumbnailUrl: any;
+        caption: string;
+        hashtags: never[];
+        organizerId: string;
+        organizerName: string;
+        organizerAvatarUrl: string;
+        likesCount: number;
+        commentsCount: number;
+        hasTickets: boolean;
+        isLikedByMe: boolean;
+        isFollowingOrganizer: boolean;
+    }[]>;
+    getDiscoverFeed(page?: number, limit?: number, userId?: string): Promise<{
+        id: string;
+        date: string;
+        location: string;
+        videoUrl: string | null;
+        thumbnailUrl: any;
         caption: string;
         hashtags: never[];
         organizerId: string;

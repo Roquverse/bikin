@@ -15,4 +15,12 @@ export class FeedController {
     const userId = (req.user as any)?.id;
     return this.feedService.getFeedVideos(pageNumber, 10, userId);
   }
+
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get('discover')
+  async getDiscoverFeed(@Query('page') page: string, @Req() req: Request) {
+    const pageNumber = page ? parseInt(page, 10) : 1;
+    const userId = (req.user as any)?.id;
+    return this.feedService.getDiscoverFeed(pageNumber, 10, userId);
+  }
 }

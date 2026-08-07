@@ -40,10 +40,16 @@ class VideoModel {
     final rawThumbnailUrl = json['thumbnailUrl'] ?? json['mediaUrl'] ?? '';
     final rawOrganizerAvatar = json['organizerAvatarUrl'] ?? json['organizer']?['avatarUrl'] ?? 'https://i.pravatar.cc/150';
 
+    String parsedThumbnailUrl = rawThumbnailUrl.isNotEmpty ? ApiClient.getFullUrl(rawThumbnailUrl) : '';
+    final lowerThumb = parsedThumbnailUrl.toLowerCase();
+    if (lowerThumb.endsWith('.mp4') || lowerThumb.endsWith('.mov') || lowerThumb.endsWith('.m3u8')) {
+      parsedThumbnailUrl = 'https://placehold.co/400x600/png?text=Video';
+    }
+
     return VideoModel(
       id: json['id']?.toString() ?? '',
       videoUrl: rawVideoUrl.isNotEmpty ? ApiClient.getFullUrl(rawVideoUrl) : '',
-      thumbnailUrl: rawThumbnailUrl.isNotEmpty ? ApiClient.getFullUrl(rawThumbnailUrl) : '',
+      thumbnailUrl: parsedThumbnailUrl,
       caption: json['caption'] ?? json['title'] ?? '',
       date: json['date'] as String?,
       location: json['location'] as String?,

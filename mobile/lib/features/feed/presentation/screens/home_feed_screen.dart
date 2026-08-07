@@ -65,7 +65,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     final feedState = ref.watch(feedProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           // Video Feed PageView

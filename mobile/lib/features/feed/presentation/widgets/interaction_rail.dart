@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/video_interaction_provider.dart';
+import '../../../auth/presentation/providers/auth_state_provider.dart';
 
 class InteractionRail extends ConsumerStatefulWidget {
   final String videoId;
@@ -41,6 +42,8 @@ class _InteractionRailState extends ConsumerState<InteractionRail> with SingleTi
   @override
   Widget build(BuildContext context) {
     final video = ref.watch(videoInteractionProvider(widget.videoId));
+    final currentUser = ref.watch(authStateProvider).value;
+    final isMyVideo = currentUser?.id == video.organizerId;
 
     return Positioned(
       right: 12,
@@ -49,7 +52,7 @@ class _InteractionRailState extends ConsumerState<InteractionRail> with SingleTi
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           // Yellow ticket booking button (Mockup style)
-          if (video.hasTickets) ...[
+          if (video.hasTickets && !isMyVideo) ...[
             GestureDetector(
               onTap: widget.onOpenTickets,
               child: AnimatedBuilder(

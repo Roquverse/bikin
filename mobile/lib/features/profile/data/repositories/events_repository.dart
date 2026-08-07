@@ -54,6 +54,7 @@ class EventsRepository {
     required String location,
     required String price,
     String? mediaUrl,
+    String? thumbnailUrl,
     List<Map<String, dynamic>>? tiers,
   }) async {
     try {
@@ -66,6 +67,7 @@ class EventsRepository {
         'location': location,
         'price': double.tryParse(price.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0,
         if (mediaUrl != null) 'mediaUrl': mediaUrl,
+        if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
         if (tiers != null) 'tiers': tiers,
       };
 

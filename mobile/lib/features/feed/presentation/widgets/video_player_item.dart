@@ -24,6 +24,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
   bool _isInitialized = false;
   bool _isPaused = false;
   bool _showActionIcon = false;
+  bool _isImage = false;
 
   @override
   void initState() {
@@ -54,6 +55,17 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
   Future<void> _initializeController() async {
     if (_controller != null) return;
+    
+    final url = widget.videoUrl.toLowerCase();
+    if (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png') || url.endsWith('.webp') || url.contains('cloudinary.com/image')) {
+      if (mounted) {
+        setState(() {
+          _isImage = true;
+          _isInitialized = true;
+        });
+      }
+      return;
+    }
 
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
     _controller!.setLooping(true); // Loop indefinitely like TikTok
@@ -115,9 +127,29 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized || _controller == null) {
+    if (!_isInitialized) {
       // Use shimmer if it's the active view waiting to load, or just black if it's a preloaded one
-      return widget.isActive ? const FeedShimmer() : Container(color: AppColors.primaryBackground);
+      return widget.isActive ? const FeedShimmer() : Container(color: Colors.black);
+    }
+    
+    if (_isImage) {
+      return SizedBox.expand(
+        child: Image.network(
+          widget.videoUrl,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const FeedShimmer();
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 64));
+          },
+        ),
+      );
+    }
+
+    if (_controller == null) {
+      return Container(color: Colors.black);
     }
 
     return GestureDetector(

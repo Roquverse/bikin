@@ -8,7 +8,24 @@ export declare class FeedController {
         date: string;
         location: string;
         videoUrl: string | null;
-        thumbnailUrl: string | null;
+        thumbnailUrl: any;
+        caption: string;
+        hashtags: never[];
+        organizerId: string;
+        organizerName: string;
+        organizerAvatarUrl: string;
+        likesCount: number;
+        commentsCount: number;
+        hasTickets: boolean;
+        isLikedByMe: boolean;
+        isFollowingOrganizer: boolean;
+    }[]>;
+    getDiscoverFeed(page: string, req: Request): Promise<{
+        id: string;
+        date: string;
+        location: string;
+        videoUrl: string | null;
+        thumbnailUrl: any;
         caption: string;
         hashtags: never[];
         organizerId: string;
