@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../features/auth/presentation/widgets/custom_text_field.dart';
@@ -15,6 +18,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
   final TextEditingController _venueController = TextEditingController();
+  
+  File? _selectedVideo;
+  VideoPlayerController? _videoController;
+  final ImagePicker _picker = ImagePicker();
+  bool _isPickingVideo = false;
 
   @override
   void dispose() {
@@ -22,7 +30,50 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     _dateController.dispose();
     _timeController.dispose();
     _venueController.dispose();
+    _videoController?.dispose();
     super.dispose();
+  }
+  
+  Future<void> _pickVideo() async {
+    setState(() {
+      _isPickingVideo = true;
+    });
+    
+    try {
+      final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+      
+      if (video != null) {
+        final file = File(video.path);
+        
+        // Dispose old controller if exists
+        if (_videoController != null) {
+          await _videoController!.dispose();
+        }
+        
+        _videoController = VideoPlayerController.file(file);
+        await _videoController!.initialize();
+        _videoController!.setLooping(true);
+        
+        setState(() {
+          _selectedVideo = file;
+        });
+        
+        // Auto play the selected video preview
+        _videoController!.play();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking video: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingVideo = false;
+        });
+      }
+    }
   }
 
   @override
@@ -81,53 +132,88 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Video Placeholder
-                    Container(
-                      height: 320,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceElevated,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.accentCta.withAlpha(40)),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(Icons.video_library_outlined, size: 64, color: AppColors.secondary),
-                          Positioned(
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
-                            child: Row(
-                              children: [
-                                const Text('0:00', style: TextStyle(color: AppColors.offWhite, fontSize: 12)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Container(
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryBackground,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Container(
-                                        width: 80,
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.accentCta,
-                                          borderRadius: BorderRadius.circular(2),
+                    // Video Placeholder / Preview
+                    GestureDetector(
+                      onTap: _pickVideo,
+                      child: Container(
+                        height: 320,
+                        width: double.infinity,
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.accentCta.withAlpha(40)),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (_isPickingVideo)
+                              const CircularProgressIndicator(color: AppColors.accentCta)
+                            else if (_videoController != null && _videoController!.value.isInitialized)
+                              SizedBox.expand(
+                                child: FittedBox(
+                                  fit: BoxFit.cover,
+                                  child: SizedBox(
+                                    width: _videoController!.value.size.width,
+                                    height: _videoController!.value.size.height,
+                                    child: VideoPlayer(_videoController!),
+                                  ),
+                                ),
+                              )
+                            else
+                              const Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.video_library_outlined, size: 48, color: AppColors.secondary),
+                                  SizedBox(height: 12),
+                                  Text(
+                                    'Tap to upload vertical video',
+                                    style: TextStyle(color: AppColors.secondary, fontSize: 13, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              
+                            // Custom progress timeline overlay
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
+                              right: 16,
+                              child: Row(
+                                children: [
+                                  const Text('0:00', style: TextStyle(color: AppColors.offWhite, fontSize: 12)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Container(
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryBackground,
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                          width: 80,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.accentCta,
+                                            borderRadius: BorderRadius.circular(2),
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text('0:15', style: TextStyle(color: AppColors.offWhite, fontSize: 12)),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _videoController != null && _videoController!.value.isInitialized 
+                                      ? '${_videoController!.value.duration.inSeconds}s'
+                                      : '0:15', 
+                                    style: const TextStyle(color: AppColors.offWhite, fontSize: 12)
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
