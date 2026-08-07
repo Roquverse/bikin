@@ -9,12 +9,10 @@ export class FeedController {
 
   @UseGuards(OptionalJwtAuthGuard)
   @Get()
-  async getFeed(@Query('page') page: string, @Req() req: Request) {
-    const pageNumber = page ? parseInt(page, 10) : 1;
   async getFeed(@Query('page') page: string, @Query('category') category: string, @Req() req: Request) {
     const pageNumber = page ? parseInt(page, 10) : 1;
     const userId = (req.user as any)?.id;
-    return this.feedService.getFeed(pageNumber, 10, userId, category);
+    return this.feedService.getFeedVideos(pageNumber, 10, userId, category);
   }
 
   @UseGuards(OptionalJwtAuthGuard)
