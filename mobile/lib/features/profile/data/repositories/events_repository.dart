@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/data/api/auth_api_client.dart';
@@ -26,6 +27,52 @@ class EventsRepository {
       return true;
     } catch (e) {
       LoggerUtil.error('Failed to delete event', e);
+      return false;
+    }
+  }
+
+  Future<String?> uploadMedia(File file) async {
+    try {
+      String fileName = file.path.split('/').last;
+      FormData formData = FormData.fromMap({
+        "file": await MultipartFile.fromFile(file.path, filename: fileName),
+      });
+
+      final response = await _dio.post('/media/upload', data: formData);
+      return response.data['url'] as String;
+    } catch (e) {
+      LoggerUtil.error('Failed to upload media', e);
+      return null;
+    }
+  }
+
+  Future<bool> createEvent({
+    required String title,
+    required String description,
+    required String date,
+    required String time,
+    required String location,
+    required String price,
+    String? mediaUrl,
+  }) async {
+    try {
+      // Combine date and time for backend
+      // date is "YYYY-MM-DD", time is "HH:MM AM/PM". Backend expects ISO date.
+      // We can just pass the date as is, backend uses new Date(data.date).
+      // A more robust way is parsing, but for simplicity we'll pass "YYYY-MM-DD"
+      final eventDate = DateTime.parse(date);
+      
+      final response = await _dio.post('/events', data: {
+        'title': title,
+        'description': description,
+        'date': eventDate.toIso8601String(),
+        'location': location,
+        'price': double.tryParse(price.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0,
+        'mediaUrl': mediaUrl,
+      });
+      return response.statusCode == 201;
+    } catch (e) {
+      LoggerUtil.error('Failed to create event', e);
       return false;
     }
   }

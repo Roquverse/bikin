@@ -2,12 +2,14 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
+import '../../profile/data/repositories/events_repository.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
 
-class CreateEventScreen extends StatefulWidget {
+class CreateEventScreen extends ConsumerStatefulWidget {
   final File? initialMedia;
   final bool isInitialMediaImage;
 
@@ -18,10 +20,11 @@ class CreateEventScreen extends StatefulWidget {
   });
 
   @override
-  State<CreateEventScreen> createState() => _CreateEventScreenState();
+  ConsumerState<CreateEventScreen> createState() => _CreateEventScreenState();
 }
 
-class _CreateEventScreenState extends State<CreateEventScreen> {
+class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
+  bool _isLoading = false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
@@ -504,22 +507,46 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
                       // Post Button
                       PrimaryButton(
-                        text: 'Post & List Event',
-                        onPressed: () {
-                          if (_nameController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty) {
+                        text: _isLoading ? 'Creating...' : 'Post & List Event',
+                        onPressed: _isLoading ? () {} : () async {
+                          if (_nameController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty || _selectedMedia == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Please fill all required details (Name, Date, Time)')),
+                              const SnackBar(content: Text('Please fill all required details and select media')),
                             );
                             return;
                           }
                           
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Event created successfully!')),
+                          setState(() => _isLoading = true);
+                          
+                          final eventsRepo = ref.read(eventsRepositoryProvider);
+                          String? mediaUrl;
+                          
+                          if (_selectedMedia != null) {
+                            mediaUrl = await eventsRepo.uploadMedia(_selectedMedia!);
+                          }
+                          
+                          final success = await eventsRepo.createEvent(
+                            title: _nameController.text,
+                            description: _captionController.text,
+                            date: _dateController.text,
+                            time: _timeController.text,
+                            location: _venueController.text,
+                            price: '5000',
+                            mediaUrl: mediaUrl,
                           );
                           
-                          Future.delayed(const Duration(milliseconds: 1500), () {
+                          if (mounted) setState(() => _isLoading = false);
+
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Event created successfully!')),
+                            );
                             if (mounted) Navigator.pop(context);
-                          });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Failed to create event')),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(height: 40),

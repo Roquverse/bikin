@@ -16,6 +16,58 @@ let EventsService = class EventsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async createEvent(organizerId, data) {
+        if (!data.title || !data.date || !data.location) {
+            throw new common_1.BadRequestException('Missing required fields: title, date, location');
+        }
+        return this.prisma.event.create({
+            data: {
+                title: data.title,
+                description: data.description || '',
+                date: new Date(data.date),
+                location: data.location,
+                mediaUrl: data.mediaUrl,
+                price: data.price ? parseFloat(data.price) : 0.0,
+                organizerId,
+            },
+        });
+    }
+    async getTicketTiers(eventId) {
+        const event = await this.prisma.event.findUnique({
+            where: { id: eventId },
+        });
+        if (!event)
+            throw new common_1.NotFoundException('Event not found');
+        return [
+            {
+                id: 't1',
+                name: 'General Admission',
+                price: event.price,
+                availableQuantity: 100,
+            }
+        ];
+    }
+    async bookTickets(eventId, userId, data) {
+        const event = await this.prisma.event.findUnique({
+            where: { id: eventId },
+        });
+        if (!event)
+            throw new common_1.NotFoundException('Event not found');
+        let count = 1;
+        if (data.selectedTiers && data.selectedTiers['t1']) {
+            count = data.selectedTiers['t1'];
+        }
+        for (let i = 0; i < count; i++) {
+            await this.prisma.ticket.create({
+                data: {
+                    eventId,
+                    userId,
+                    status: 'VALID',
+                },
+            });
+        }
+        return { success: true };
+    }
     async getEventBookings(eventId, organizerId) {
         const event = await this.prisma.event.findUnique({
             where: { id: eventId },

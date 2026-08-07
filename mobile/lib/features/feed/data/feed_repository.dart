@@ -28,7 +28,13 @@ class FeedRepositoryImpl implements FeedRepository {
       final response = await _dio.get('/feed', queryParameters: {'page': page});
       final List<dynamic> data = response.data;
       
-      return data.map((json) => VideoModel.fromJson(json)).toList();
+      return data.map((json) {
+        String videoUrl = json['videoUrl'] ?? '';
+        if (videoUrl.startsWith('/')) {
+          json['videoUrl'] = '${_dio.options.baseUrl}$videoUrl';
+        }
+        return VideoModel.fromJson(json);
+      }).toList();
     } catch (e) {
       LoggerUtil.error('Failed to fetch feed videos: $e');
       throw Exception('Failed to fetch feed videos');
@@ -37,12 +43,14 @@ class FeedRepositoryImpl implements FeedRepository {
 
   @override
   Future<List<TicketTierModel>> getTicketTiers(String videoId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return [
-      const TicketTierModel(id: 't1', name: 'General Admission', price: 5000.0, availableQuantity: 100),
-      const TicketTierModel(id: 't2', name: 'VIP', price: 15000.0, availableQuantity: 20),
-      const TicketTierModel(id: 't3', name: 'VVIP Table', price: 50000.0, availableQuantity: 2),
-    ];
+    try {
+      final response = await _dio.get('/events/$videoId/tickets/tiers');
+      final List<dynamic> data = response.data;
+      return data.map((json) => TicketTierModel.fromJson(json)).toList();
+    } catch (e) {
+      LoggerUtil.error('Failed to get ticket tiers', e);
+      return [];
+    }
   }
 
   @override
@@ -72,16 +80,18 @@ class FeedRepositoryImpl implements FeedRepository {
 
   @override
   Future<bool> bookTickets(String videoId, Map<String, int> selectedTiers) async {
-    await Future.delayed(const Duration(seconds: 2));
-    
-    final bool soldOutSimulation = DateTime.now().second % 5 == 0;
-    
-    if (soldOutSimulation) {
-      LoggerUtil.error('Server returned sold out error');
+    try {
+      final response = await _dio.post(
+        '/events/$videoId/tickets/book',
+        data: {
+          'selectedTiers': selectedTiers,
+        },
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      LoggerUtil.error('Failed to book tickets', e);
       throw Exception('Tickets sold out or unavailable.');
     }
-    
-    return true; 
   }
 
   @override

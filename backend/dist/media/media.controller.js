@@ -14,11 +14,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MediaController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
+const multer_1 = require("multer");
+const path_1 = require("path");
 const media_service_1 = require("./media.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let MediaController = class MediaController {
     constructor(mediaService) {
         this.mediaService = mediaService;
+    }
+    async uploadFile(file) {
+        return {
+            message: 'File uploaded successfully',
+            url: `/uploads/${file.filename}`,
+        };
     }
     async createVideo(title) {
         return this.mediaService.createVideo(title || 'Untitled Video');
@@ -28,6 +37,23 @@ let MediaController = class MediaController {
     }
 };
 exports.MediaController = MediaController;
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('upload'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads',
+            filename: (req, file, cb) => {
+                const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+                cb(null, `${randomName}${(0, path_1.extname)(file.originalname)}`);
+            }
+        })
+    })),
+    __param(0, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], MediaController.prototype, "uploadFile", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)('videos'),

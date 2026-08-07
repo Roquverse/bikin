@@ -8,6 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const serve_static_1 = require("@nestjs/serve-static");
+const path_1 = require("path");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const prisma_module_1 = require("./common/prisma/prisma.module");
@@ -24,7 +26,13 @@ let AppModule = class AppModule {
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, redis_module_1.RedisModule, auth_module_1.AuthModule, users_module_1.UsersModule, media_module_1.MediaModule, payments_module_1.PaymentsModule, feed_module_1.FeedModule, mail_module_1.MailModule, events_module_1.EventsModule],
+        imports: [
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                serveRoot: '/uploads',
+            }),
+            prisma_module_1.PrismaModule, redis_module_1.RedisModule, auth_module_1.AuthModule, users_module_1.UsersModule, media_module_1.MediaModule, payments_module_1.PaymentsModule, feed_module_1.FeedModule, mail_module_1.MailModule, events_module_1.EventsModule
+        ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
