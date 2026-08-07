@@ -71,9 +71,9 @@ model Ticket {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  event     Event    @relation(fields: [eventId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-  tier      TicketTier? @relation(fields: [tierId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier      TicketTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
 }
 
 model Like {
