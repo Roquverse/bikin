@@ -57,6 +57,7 @@ export declare class UsersController {
             date: Date;
             location: string;
             mediaUrl: string | null;
+            thumbnailUrl: string | null;
             price: number;
             organizerId: string;
         };

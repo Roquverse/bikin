@@ -10,8 +10,10 @@ part 'feed_repository.g.dart';
 
 abstract class FeedRepository {
   Future<List<VideoModel>> getFeedVideos({int page = 1});
+  Future<List<VideoModel>> getDiscoverFeedVideos({int page = 1});
   Future<List<TicketTierModel>> getTicketTiers(String videoId);
   Future<List<CommentModel>> getComments(String videoId);
+  Future<CommentModel> addComment(String videoId, String text);
   Future<bool> bookTickets(String videoId, Map<String, int> selectedTiers);
   Future<void> toggleLike(String videoId, bool isLiked);
   Future<void> toggleFollow(String organizerId, bool isFollowing);
@@ -42,6 +44,25 @@ class FeedRepositoryImpl implements FeedRepository {
   }
 
   @override
+  Future<List<VideoModel>> getDiscoverFeedVideos({int page = 1}) async {
+    try {
+      final response = await _dio.get('/feed/discover', queryParameters: {'page': page});
+      final List<dynamic> data = response.data;
+      
+      return data.map((json) {
+        String videoUrl = json['videoUrl'] ?? '';
+        if (videoUrl.startsWith('/')) {
+          json['videoUrl'] = '${_dio.options.baseUrl}$videoUrl';
+        }
+        return VideoModel.fromJson(json);
+      }).toList();
+    } catch (e) {
+      LoggerUtil.error('Failed to fetch discover videos: $e');
+      throw Exception('Failed to fetch discover videos');
+    }
+  }
+
+  @override
   Future<List<TicketTierModel>> getTicketTiers(String videoId) async {
     try {
       final response = await _dio.get('/events/$videoId/tickets/tiers');
@@ -55,27 +76,45 @@ class FeedRepositoryImpl implements FeedRepository {
 
   @override
   Future<List<CommentModel>> getComments(String videoId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return [
-      CommentModel(
-        id: 'c1',
-        userId: 'u1',
-        userName: 'Alex',
-        userAvatarUrl: 'https://i.pravatar.cc/150?u=a1',
-        text: 'This looks amazing! Cant wait.',
-        createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
-        isOrganizer: false,
-      ),
-      CommentModel(
-        id: 'c2',
-        userId: 'org1',
-        userName: 'Nature Walks',
-        userAvatarUrl: 'https://i.pravatar.cc/150?u=org1',
-        text: 'Glad you like it! Make sure to book early.',
-        createdAt: DateTime.now().subtract(const Duration(minutes: 2)),
-        isOrganizer: true,
-      ),
-    ];
+    try {
+      final response = await _dio.get('/events/$videoId/comments');
+      final List<dynamic> data = response.data;
+      return data.map((json) => CommentModel(
+        id: json['id'],
+        userId: json['userId'],
+        userName: json['userName'],
+        userAvatarUrl: json['userAvatarUrl'],
+        text: json['text'],
+        createdAt: DateTime.parse(json['createdAt']),
+        isOrganizer: json['isOrganizer'],
+      )).toList();
+    } catch (e) {
+      LoggerUtil.error('Failed to get comments', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<CommentModel> addComment(String videoId, String text) async {
+    try {
+      final response = await _dio.post(
+        '/events/$videoId/comments',
+        data: { 'text': text },
+      );
+      final json = response.data;
+      return CommentModel(
+        id: json['id'],
+        userId: json['userId'],
+        userName: json['userName'],
+        userAvatarUrl: json['userAvatarUrl'],
+        text: json['text'],
+        createdAt: DateTime.parse(json['createdAt']),
+        isOrganizer: json['isOrganizer'],
+      );
+    } catch (e) {
+      LoggerUtil.error('Failed to add comment', e);
+      throw Exception('Failed to add comment');
+    }
   }
 
   @override

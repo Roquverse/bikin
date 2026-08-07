@@ -21,6 +21,9 @@ class CommentsSheet extends ConsumerStatefulWidget {
 class _CommentsSheetState extends ConsumerState<CommentsSheet> {
   final TextEditingController _controller = TextEditingController();
   bool _hasText = false;
+  bool _isLoading = true;
+  String? _error;
+  List<dynamic> _comments = [];
 
   @override
   void initState() {
@@ -29,6 +32,48 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
       final has = _controller.text.trim().isNotEmpty;
       if (has != _hasText) setState(() => _hasText = has);
     });
+    _loadComments();
+  }
+
+  Future<void> _loadComments() async {
+    try {
+      final comments = await ref.read(feedRepositoryProvider).getComments(widget.videoId);
+      if (mounted) {
+        setState(() {
+          _comments = comments;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load comments';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _addComment() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    _controller.clear();
+    
+    try {
+      final newComment = await ref.read(feedRepositoryProvider).addComment(widget.videoId, text);
+      if (mounted) {
+        setState(() {
+          _comments.insert(0, newComment);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to post comment')),
+        );
+      }
+    }
   }
 
   @override
@@ -39,8 +84,6 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final commentsFuture = ref.watch(feedRepositoryProvider).getComments(widget.videoId);
-
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       child: BackdropFilter(
@@ -123,10 +166,9 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
 
                   // Comments list
                   Expanded(
-                    child: FutureBuilder(
-                      future: commentsFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                    child: Builder(
+                      builder: (context) {
+                        if (_isLoading) {
                           return const Center(
                             child: CircularProgressIndicator(
                               color: AppColors.accentCta,
@@ -134,7 +176,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                             ),
                           );
                         }
-                        if (snapshot.hasError) {
+                        if (_error != null) {
                           return Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -148,8 +190,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                             ),
                           );
                         }
-                        final comments = snapshot.data ?? [];
-                        if (comments.isEmpty) {
+                        if (_comments.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -167,9 +208,9 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                         return ListView.builder(
                           controller: scrollController,
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                          itemCount: comments.length,
+                          itemCount: _comments.length,
                           itemBuilder: (context, index) {
-                            final comment = comments[index];
+                            final comment = _comments[index];
                             return _CommentTile(comment: comment);
                           },
                         );
@@ -181,11 +222,7 @@ class _CommentsSheetState extends ConsumerState<CommentsSheet> {
                   _CommentInput(
                     controller: _controller,
                     hasText: _hasText,
-                    onSend: () {
-                      if (_controller.text.trim().isNotEmpty) {
-                        _controller.clear();
-                      }
-                    },
+                    onSend: _addComment,
                   ),
                 ],
               );

@@ -4,48 +4,74 @@ export declare class EventsService {
     constructor(prisma: PrismaService);
     createEvent(organizerId: string, data: any): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
         location: string;
         mediaUrl: string | null;
+        thumbnailUrl: string | null;
         price: number;
-        createdAt: Date;
-        updatedAt: Date;
         organizerId: string;
     }>;
-    getTicketTiers(eventId: string): Promise<any>;
+    getTicketTiers(eventId: string): Promise<{
+        id: string;
+        name: string;
+        price: number;
+        availableQuantity: number;
+    }[]>;
     bookTickets(eventId: string, userId: string, data: any): Promise<{
         success: boolean;
         ticketsBooked: number;
     }>;
     getEventBookings(eventId: string, organizerId: string): Promise<({
         user: {
-            id: string;
             name: string;
+            id: string;
             email: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        eventId: string;
-        userId: string;
         status: string;
+        eventId: string;
+        tierId: string | null;
+        userId: string;
     })[]>;
     updateEvent(eventId: string, organizerId: string, data: any): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
         location: string;
         mediaUrl: string | null;
+        thumbnailUrl: string | null;
         price: number;
-        createdAt: Date;
-        updatedAt: Date;
         organizerId: string;
     }>;
     deleteEvent(eventId: string, organizerId: string): Promise<{
         success: boolean;
+    }>;
+    getEventComments(eventId: string): Promise<{
+        id: string;
+        userId: string;
+        userName: string;
+        userAvatarUrl: string;
+        text: string;
+        createdAt: Date;
+        isOrganizer: boolean;
+    }[]>;
+    addEventComment(eventId: string, userId: string, data: any): Promise<{
+        id: string;
+        userId: string;
+        userName: string;
+        userAvatarUrl: string;
+        text: string;
+        createdAt: Date;
+        isOrganizer: boolean;
     }>;
 }

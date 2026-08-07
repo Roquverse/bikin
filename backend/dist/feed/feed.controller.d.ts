@@ -8,7 +8,7 @@ export declare class FeedController {
         date: string;
         location: string;
         videoUrl: string | null;
-        thumbnailUrl: any;
+        thumbnailUrl: string | null;
         caption: string;
         hashtags: never[];
         organizerId: string;
@@ -25,7 +25,7 @@ export declare class FeedController {
         date: string;
         location: string;
         videoUrl: string | null;
-        thumbnailUrl: any;
+        thumbnailUrl: string | null;
         caption: string;
         hashtags: never[];
         organizerId: string;

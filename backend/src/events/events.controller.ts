@@ -41,4 +41,16 @@ export class EventsController {
   async deleteEvent(@Param('id') id: string, @Request() req) {
     return this.eventsService.deleteEvent(id, req.user.id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/comments')
+  async getComments(@Param('id') id: string) {
+    return this.eventsService.getEventComments(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/comments')
+  async addComment(@Param('id') id: string, @Body() data: any, @Request() req) {
+    return this.eventsService.addEventComment(id, req.user.id, data);
+  }
 }

@@ -166,9 +166,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                           Text('Lagos', style: TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.bold, fontSize: 16)),
                         ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.search, color: AppColors.offWhite),
-                        onPressed: () {},
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.search, color: AppColors.offWhite),
+                            onPressed: () {},
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.logout, color: AppColors.offWhite),
+                            onPressed: () async {
+                              await ref.read(authStateProvider.notifier).logout();
+                              if (context.mounted) {
+                                context.go('/login');
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),

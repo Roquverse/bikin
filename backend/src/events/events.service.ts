@@ -162,4 +162,71 @@ export class EventsService {
 
     return { success: true };
   }
+
+  async getEventComments(eventId: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    const comments = await this.prisma.comment.findMany({
+      where: { eventId },
+      include: {
+        user: {
+          select: { id: true, name: true, avatarUrl: true, role: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return comments.map(c => ({
+      id: c.id,
+      userId: c.userId,
+      userName: c.user.name,
+      userAvatarUrl: c.user.avatarUrl || 'https://i.pravatar.cc/150',
+      text: c.text,
+      createdAt: c.createdAt,
+      isOrganizer: c.user.role === 'ORGANIZER',
+    }));
+  }
+
+  async addEventComment(eventId: string, userId: string, data: any) {
+    if (!data.text) {
+      throw new BadRequestException('Comment text is required');
+    }
+
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    const comment = await this.prisma.comment.create({
+      data: {
+        text: data.text,
+        eventId,
+        userId,
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, avatarUrl: true, role: true },
+        },
+      },
+    });
+
+    return {
+      id: comment.id,
+      userId: comment.userId,
+      userName: comment.user.name,
+      userAvatarUrl: comment.user.avatarUrl || 'https://i.pravatar.cc/150',
+      text: comment.text,
+      createdAt: comment.createdAt,
+      isOrganizer: comment.user.role === 'ORGANIZER',
+    };
+  }
 }

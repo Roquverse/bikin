@@ -375,48 +375,51 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             showModalBottomSheet(
                               context: context,
                               backgroundColor: Colors.transparent,
-                              builder: (context) => Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.surfaceElevated,
-                                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('Change Media', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 20),
-                                    ListTile(
-                                      leading: const Icon(Icons.image, color: Colors.white),
-                                      title: const Text('Change Cover Image (Required)', style: TextStyle(color: Colors.white)),
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                        _pickMedia(isVideo: false);
-                                      },
-                                    ),
-                                    ListTile(
-                                      leading: const Icon(Icons.movie, color: Colors.white),
-                                      title: const Text('Change Reel Video (Optional)', style: TextStyle(color: Colors.white)),
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                        _pickMedia(isVideo: true);
-                                      },
-                                    ),
-                                    if (_selectedVideo != null)
+                              builder: (context) => Material(
+                                color: Colors.transparent,
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.surfaceElevated,
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text('Change Media', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 20),
                                       ListTile(
-                                        leading: const Icon(Icons.delete, color: AppColors.error),
-                                        title: const Text('Remove Video', style: TextStyle(color: AppColors.error)),
+                                        leading: const Icon(Icons.image, color: Colors.white),
+                                        title: const Text('Change Cover Image (Required)', style: TextStyle(color: Colors.white)),
                                         onTap: () {
                                           Navigator.pop(context);
-                                          setState(() {
-                                            _selectedVideo = null;
-                                            _videoController?.dispose();
-                                            _videoController = null;
-                                          });
+                                          _pickMedia(isVideo: false);
                                         },
                                       ),
-                                    const SizedBox(height: 20),
-                                  ],
+                                      ListTile(
+                                        leading: const Icon(Icons.movie, color: Colors.white),
+                                        title: const Text('Change Reel Video (Optional)', style: TextStyle(color: Colors.white)),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          _pickMedia(isVideo: true);
+                                        },
+                                      ),
+                                      if (_selectedVideo != null)
+                                        ListTile(
+                                          leading: const Icon(Icons.delete, color: AppColors.error),
+                                          title: const Text('Remove Video', style: TextStyle(color: AppColors.error)),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                            setState(() {
+                                              _selectedVideo = null;
+                                              _videoController?.dispose();
+                                              _videoController = null;
+                                            });
+                                          },
+                                        ),
+                                      const SizedBox(height: 20),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );

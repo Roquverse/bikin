@@ -11,6 +11,7 @@ export declare class EventsController {
         date: Date;
         location: string;
         mediaUrl: string | null;
+        thumbnailUrl: string | null;
         price: number;
         organizerId: string;
     }>;
@@ -48,10 +49,29 @@ export declare class EventsController {
         date: Date;
         location: string;
         mediaUrl: string | null;
+        thumbnailUrl: string | null;
         price: number;
         organizerId: string;
     }>;
     deleteEvent(id: string, req: any): Promise<{
         success: boolean;
+    }>;
+    getComments(id: string): Promise<{
+        id: string;
+        userId: string;
+        userName: string;
+        userAvatarUrl: string;
+        text: string;
+        createdAt: Date;
+        isOrganizer: boolean;
+    }[]>;
+    addComment(id: string, data: any, req: any): Promise<{
+        id: string;
+        userId: string;
+        userName: string;
+        userAvatarUrl: string;
+        text: string;
+        createdAt: Date;
+        isOrganizer: boolean;
     }>;
 }

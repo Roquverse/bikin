@@ -56,6 +56,7 @@ export declare class UsersService {
             date: Date;
             location: string;
             mediaUrl: string | null;
+            thumbnailUrl: string | null;
             price: number;
             organizerId: string;
         };

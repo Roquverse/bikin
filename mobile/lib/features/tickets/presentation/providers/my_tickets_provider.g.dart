@@ -46,4 +46,4 @@ final class MyTicketsProvider
   }
 }
 
-String _$myTicketsHash() => r'06b8719b36f13b624e2fac14a52837dc104f3f0f';
+String _$myTicketsHash() => r'27e81abbd03bdd6e8530f1a33dd3670f98741ff9';

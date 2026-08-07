@@ -1,18 +1,25 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/video_model.dart';
-import '../../../../core/network/api_client.dart';
+import '../../data/feed_repository.dart';
 
-final discoverProvider = FutureProvider<List<VideoModel>>((ref) async {
-  try {
-    final response = await ApiClient.get('/feed/discover');
-    
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data;
-      return data.map((json) => VideoModel.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load discover events');
-    }
-  } catch (e) {
-    throw Exception('Failed to load discover events: $e');
+part 'discover_provider.g.dart';
+
+@riverpod
+class Discover extends _$Discover {
+  @override
+  FutureOr<List<VideoModel>> build() async {
+    return ref.watch(feedRepositoryProvider).getDiscoverFeedVideos();
   }
-});
+
+  Future<void> loadMore() async {
+    if (state.isLoading) return;
+    
+    final currentVideos = state.value ?? [];
+    state = const AsyncValue.loading();
+    
+    state = await AsyncValue.guard(() async {
+      final moreVideos = await ref.read(feedRepositoryProvider).getDiscoverFeedVideos(page: 2);
+      return [...currentVideos, ...moreVideos];
+    });
+  }
+}
