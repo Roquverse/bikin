@@ -8,6 +8,8 @@ export declare class MediaService {
         videoId: any;
         message: string;
     }>;
+    uploadImageToCloudinary(filePath: string): Promise<string>;
+    uploadVideoToBunny(filePath: string): Promise<string>;
     deleteVideo(videoId: string): Promise<{
         success: boolean;
         message: string;

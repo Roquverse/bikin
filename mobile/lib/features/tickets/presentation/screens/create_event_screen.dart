@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import '../../../profile/data/repositories/events_repository.dart';
+import '../../../feed/presentation/providers/feed_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
 
@@ -569,14 +570,18 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
                       // Post Button
                       PrimaryButton(
-                        text: 'Post & List Event',
-                        onPressed: () {
+                        text: _isLoading ? 'Creating Event...' : 'Post & List Event',
+                        onPressed: _isLoading ? () {} : () async {
                           if (_nameController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty || _selectedMedia == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Please fill all required details and select media')),
                             );
                             return;
                           }
+                          
+                          setState(() {
+                            _isLoading = true;
+                          });
                           
                           final eventsRepo = ref.read(eventsRepositoryProvider);
                           final media = _selectedMedia;
@@ -586,32 +591,49 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           final time = _timeController.text;
                           final location = _venueController.text;
                           
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Creating event in the background...')),
-                          );
-                          Navigator.pop(context);
-                          
-                          Future(() async {
-                            try {
-                              String? mediaUrl;
-                              if (media != null) {
-                                mediaUrl = await eventsRepo.uploadMedia(media);
-                              }
-                              
-                              await eventsRepo.createEvent(
-                                title: title,
-                                description: description,
-                                date: date,
-                                time: time,
-                                location: location,
-                                price: _tiers.isNotEmpty ? _tiers.first['price'] : '0',
-                                mediaUrl: mediaUrl,
-                                tiers: _tiers,
-                              );
-                            } catch (e) {
-                              debugPrint('Background event creation failed: $e');
+                          try {
+                            String? mediaUrl;
+                            if (media != null) {
+                              mediaUrl = await eventsRepo.uploadMedia(media);
                             }
-                          });
+                            
+                            final success = await eventsRepo.createEvent(
+                              title: title,
+                              description: description,
+                              date: date,
+                              time: time,
+                              location: location,
+                              price: _tiers.isNotEmpty ? _tiers.first['price'] : '0',
+                              mediaUrl: mediaUrl,
+                              tiers: _tiers,
+                            );
+                            
+                            if (success && mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Event created successfully!')),
+                              );
+                              // Refresh the feed to show the newly created event
+                              ref.invalidate(feedProvider);
+                              Navigator.pop(context);
+                            } else if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Failed to create event')),
+                              );
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          } catch (e) {
+                            debugPrint('Event creation failed: $e');
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: $e')),
+                              );
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          }
                         },
                       ),
                       const SizedBox(height: 40),

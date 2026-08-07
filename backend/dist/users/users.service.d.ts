@@ -63,8 +63,9 @@ export declare class UsersService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        eventId: string;
         status: string;
+        eventId: string;
+        tierId: string | null;
+        userId: string;
     })[]>;
 }

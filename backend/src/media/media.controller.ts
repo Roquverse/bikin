@@ -2,6 +2,7 @@ import { Controller, Post, Body, UseGuards, Delete, Param, UseInterceptors, Uplo
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as fs from 'fs';
 import { MediaService } from './media.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -21,14 +22,34 @@ export class MediaController {
     })
   }))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    // Determine the base URL. In a real app, this would be an env variable.
-    // For local dev with android/iOS emulators, we can just return a path and let the app build the URL,
-    // or return the full URL if we know it.
-    // Since we don't know the IP from here reliably without req, we'll return the relative path
-    return {
-      message: 'File uploaded successfully',
-      url: `/uploads/${file.filename}`,
-    };
+    try {
+      const filePath = `./uploads/${file.filename}`;
+      const isVideo = file.mimetype.startsWith('video/');
+      
+      let finalUrl = '';
+      if (isVideo) {
+        finalUrl = await this.mediaService.uploadVideoToBunny(filePath);
+      } else {
+        finalUrl = await this.mediaService.uploadImageToCloudinary(filePath);
+      }
+
+      // Cleanup local file
+      try {
+        fs.unlinkSync(filePath);
+      } catch (e) {
+        console.error('Failed to cleanup file:', e);
+      }
+
+      return {
+        message: 'File uploaded successfully',
+        url: finalUrl,
+      };
+    } catch (error) {
+      try {
+        fs.unlinkSync(`./uploads/${file.filename}`);
+      } catch (e) {}
+      throw error;
+    }
   }
 
   @UseGuards(JwtAuthGuard)
