@@ -21,7 +21,7 @@ export declare class FeedController {
         isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
     }[]>;
-    getDiscoverFeed(page: string, req: Request): Promise<{
+    getDiscoverFeed(page: string, category: string, req: Request): Promise<{
         id: string;
         date: string;
         location: string;

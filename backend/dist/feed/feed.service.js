@@ -79,9 +79,12 @@ let FeedService = class FeedService {
             isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
         }));
     }
-    async getDiscoverFeed(page = 1, limit = 10, userId) {
+    async getDiscoverFeed(page = 1, limit = 10, userId, category) {
         const skip = (page - 1) * limit;
         const whereClause = {};
+        if (category && category !== 'All') {
+            whereClause.category = { equals: category, mode: 'insensitive' };
+        }
         const events = await this.prisma.event.findMany({
             where: whereClause,
             orderBy: {

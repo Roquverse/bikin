@@ -73,10 +73,14 @@ export class FeedService {
     }));
   }
 
-  async getDiscoverFeed(page: number = 1, limit: number = 10, userId?: string) {
+  async getDiscoverFeed(page: number = 1, limit: number = 10, userId?: string, category?: string) {
     const skip = (page - 1) * limit;
 
     const whereClause: any = {};
+    
+    if (category && category !== 'All') {
+      whereClause.category = { equals: category, mode: 'insensitive' };
+    }
 
     const events = await this.prisma.event.findMany({
       where: whereClause,

@@ -25,10 +25,10 @@ let FeedController = class FeedController {
         const userId = req.user?.id;
         return this.feedService.getFeedVideos(pageNumber, 10, userId, category);
     }
-    async getDiscoverFeed(page, req) {
+    async getDiscoverFeed(page, category, req) {
         const pageNumber = page ? parseInt(page, 10) : 1;
         const userId = req.user?.id;
-        return this.feedService.getDiscoverFeed(pageNumber, 10, userId);
+        return this.feedService.getDiscoverFeed(pageNumber, 10, userId, category);
     }
     async getCategories() {
         return this.feedService.getCategories();
@@ -49,9 +49,10 @@ __decorate([
     (0, common_1.UseGuards)(optional_jwt_auth_guard_1.OptionalJwtAuthGuard),
     (0, common_1.Get)('discover'),
     __param(0, (0, common_1.Query)('page')),
-    __param(1, (0, common_1.Req)()),
+    __param(1, (0, common_1.Query)('category')),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], FeedController.prototype, "getDiscoverFeed", null);
 __decorate([
