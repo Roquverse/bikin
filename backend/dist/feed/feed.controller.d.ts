@@ -20,7 +20,7 @@ export declare class FeedController {
         isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
     }[]>;
-    getDiscoverFeed(page: string, req: Request): Promise<{
+    getDiscoverFeed(page: string, location: string, req: Request): Promise<{
         id: string;
         date: string;
         location: string;
@@ -36,5 +36,9 @@ export declare class FeedController {
         hasTickets: boolean;
         isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
+    }[]>;
+    getLocations(): Promise<{
+        id: string;
+        name: string;
     }[]>;
 }

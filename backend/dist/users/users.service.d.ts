@@ -64,9 +64,12 @@ export declare class UsersService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
+        userId: string;
         eventId: string;
         tierId: string | null;
-        userId: string;
+        status: string;
     })[]>;
+    toggleFollow(followingId: string, followerId: string, isFollowing: boolean): Promise<{
+        success: boolean;
+    }>;
 }

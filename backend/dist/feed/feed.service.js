@@ -35,6 +35,10 @@ let FeedService = class FeedService {
                         id: true,
                         name: true,
                         avatarUrl: true,
+                        followers: userId ? {
+                            where: { followerId: userId },
+                            take: 1
+                        } : false,
                     },
                 },
                 _count: {
@@ -67,12 +71,17 @@ let FeedService = class FeedService {
             commentsCount: event._count.comments,
             hasTickets: event.price > 0,
             isLikedByMe: event.likes && event.likes.length > 0,
-            isFollowingOrganizer: false,
+            isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
         }));
     }
-    async getDiscoverFeed(page = 1, limit = 10, userId) {
+    async getDiscoverFeed(page = 1, limit = 10, userId, location) {
         const skip = (page - 1) * limit;
+        const whereClause = {};
+        if (location && location !== 'All') {
+            whereClause.location = { equals: location, mode: 'insensitive' };
+        }
         const events = await this.prisma.event.findMany({
+            where: whereClause,
             orderBy: {
                 createdAt: 'desc',
             },
@@ -84,6 +93,10 @@ let FeedService = class FeedService {
                         id: true,
                         name: true,
                         avatarUrl: true,
+                        followers: userId ? {
+                            where: { followerId: userId },
+                            take: 1
+                        } : false,
                     },
                 },
                 _count: {
@@ -116,8 +129,17 @@ let FeedService = class FeedService {
             commentsCount: event._count.comments,
             hasTickets: event.price > 0,
             isLikedByMe: event.likes && event.likes.length > 0,
-            isFollowingOrganizer: false,
+            isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
         }));
+    }
+    async getLocations() {
+        return [
+            { id: '1', name: 'Lagos' },
+            { id: '2', name: 'Abuja' },
+            { id: '3', name: 'Ibadan' },
+            { id: '4', name: 'Port Harcourt' },
+            { id: '5', name: 'London' }
+        ];
     }
 };
 exports.FeedService = FeedService;

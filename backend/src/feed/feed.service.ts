@@ -25,6 +25,10 @@ export class FeedService {
             id: true,
             name: true,
             avatarUrl: true,
+            followers: userId ? {
+              where: { followerId: userId },
+              take: 1
+            } : false,
           },
         },
         _count: {
@@ -58,14 +62,20 @@ export class FeedService {
       commentsCount: event._count.comments,
       hasTickets: event.price > 0,
       isLikedByMe: event.likes && event.likes.length > 0,
-      isFollowingOrganizer: false, // Can be extended with Follows table
+      isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
     }));
   }
 
-  async getDiscoverFeed(page: number = 1, limit: number = 10, userId?: string) {
+  async getDiscoverFeed(page: number = 1, limit: number = 10, userId?: string, location?: string) {
     const skip = (page - 1) * limit;
 
+    const whereClause: any = {};
+    if (location && location !== 'All') {
+      whereClause.location = { equals: location, mode: 'insensitive' };
+    }
+
     const events = await this.prisma.event.findMany({
+      where: whereClause,
       orderBy: {
         createdAt: 'desc',
       },
@@ -77,6 +87,10 @@ export class FeedService {
             id: true,
             name: true,
             avatarUrl: true,
+            followers: userId ? {
+              where: { followerId: userId },
+              take: 1
+            } : false,
           },
         },
         _count: {
@@ -110,7 +124,18 @@ export class FeedService {
       commentsCount: event._count.comments,
       hasTickets: event.price > 0,
       isLikedByMe: event.likes && event.likes.length > 0,
-      isFollowingOrganizer: false, 
+      isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
     }));
+  }
+
+  async getLocations() {
+    // These are predefined locations acting as "created by admin"
+    return [
+      { id: '1', name: 'Lagos' },
+      { id: '2', name: 'Abuja' },
+      { id: '3', name: 'Ibadan' },
+      { id: '4', name: 'Port Harcourt' },
+      { id: '5', name: 'London' }
+    ];
   }
 }

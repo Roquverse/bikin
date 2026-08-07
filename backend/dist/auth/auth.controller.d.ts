@@ -35,10 +35,10 @@ export declare class AuthController {
     setAccountType(req: any, body: {
         account_type: string;
     }): Promise<{
-        name: string;
         id: string;
         email: string;
         password: string;
+        name: string;
         avatarUrl: string | null;
         bio: string | null;
         role: import(".prisma/client").$Enums.Role;

@@ -229,4 +229,36 @@ export class EventsService {
       isOrganizer: comment.user.role === 'ORGANIZER',
     };
   }
+
+  async toggleLike(eventId: string, userId: string, isLiked: boolean) {
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+    
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    if (isLiked) {
+      try {
+        await this.prisma.like.create({
+          data: {
+            eventId,
+            userId,
+          },
+        });
+      } catch (e) {
+        // Ignore if already exists (Unique constraint failed)
+      }
+    } else {
+      await this.prisma.like.deleteMany({
+        where: {
+          eventId,
+          userId,
+        },
+      });
+    }
+
+    return { success: true };
+  }
 }

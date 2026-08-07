@@ -10,7 +10,8 @@ part 'feed_repository.g.dart';
 
 abstract class FeedRepository {
   Future<List<VideoModel>> getFeedVideos({int page = 1});
-  Future<List<VideoModel>> getDiscoverFeedVideos({int page = 1});
+  Future<List<VideoModel>> getDiscoverFeedVideos({int page = 1, String? location});
+  Future<List<String>> getLocations();
   Future<List<TicketTierModel>> getTicketTiers(String videoId);
   Future<List<CommentModel>> getComments(String videoId);
   Future<CommentModel> addComment(String videoId, String text);
@@ -44,9 +45,13 @@ class FeedRepositoryImpl implements FeedRepository {
   }
 
   @override
-  Future<List<VideoModel>> getDiscoverFeedVideos({int page = 1}) async {
+  Future<List<VideoModel>> getDiscoverFeedVideos({int page = 1, String? location}) async {
     try {
-      final response = await _dio.get('/feed/discover', queryParameters: {'page': page});
+      final queryParams = {'page': page};
+      if (location != null && location != 'All') {
+        queryParams['location'] = location;
+      }
+      final response = await _dio.get('/feed/discover', queryParameters: queryParams);
       final List<dynamic> data = response.data;
       
       return data.map((json) {
@@ -59,6 +64,19 @@ class FeedRepositoryImpl implements FeedRepository {
     } catch (e) {
       LoggerUtil.error('Failed to fetch discover videos: $e');
       throw Exception('Failed to fetch discover videos');
+    }
+  }
+
+  @override
+  Future<List<String>> getLocations() async {
+    try {
+      final response = await _dio.get('/feed/locations');
+      final List<dynamic> data = response.data;
+      return data.map((json) => json['name'] as String).toList();
+    } catch (e) {
+      LoggerUtil.error('Failed to get locations, falling back to local list', e);
+      // Fallback for local testing if backend is not yet deployed
+      return ['Lagos', 'Abuja', 'Ibadan', 'Port Harcourt', 'London'];
     }
   }
 
@@ -135,14 +153,28 @@ class FeedRepositoryImpl implements FeedRepository {
 
   @override
   Future<void> toggleLike(String videoId, bool isLiked) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    // Simulate success
+    try {
+      await _dio.post(
+        '/events/$videoId/like',
+        data: {'isLiked': isLiked},
+      );
+    } catch (e) {
+      LoggerUtil.error('Failed to toggle like', e);
+      throw Exception('Failed to toggle like');
+    }
   }
 
   @override
   Future<void> toggleFollow(String organizerId, bool isFollowing) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    // Simulate success
+    try {
+      await _dio.post(
+        '/users/$organizerId/follow',
+        data: {'isFollowing': isFollowing},
+      );
+    } catch (e) {
+      LoggerUtil.error('Failed to toggle follow', e);
+      throw Exception('Failed to toggle follow');
+    }
   }
 }
 

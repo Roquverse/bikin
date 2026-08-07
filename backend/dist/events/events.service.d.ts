@@ -27,18 +27,18 @@ export declare class EventsService {
     }>;
     getEventBookings(eventId: string, organizerId: string): Promise<({
         user: {
-            name: string;
             id: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
+        userId: string;
         eventId: string;
         tierId: string | null;
-        userId: string;
+        status: string;
     })[]>;
     updateEvent(eventId: string, organizerId: string, data: any): Promise<{
         id: string;
@@ -73,5 +73,8 @@ export declare class EventsService {
         text: string;
         createdAt: Date;
         isOrganizer: boolean;
+    }>;
+    toggleLike(eventId: string, userId: string, isLiked: boolean): Promise<{
+        success: boolean;
     }>;
 }

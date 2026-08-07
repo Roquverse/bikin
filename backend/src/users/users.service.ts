@@ -146,4 +146,32 @@ export class UsersService {
       }
     });
   }
+
+  async toggleFollow(followingId: string, followerId: string, isFollowing: boolean) {
+    if (followingId === followerId) {
+      throw new Error('You cannot follow yourself');
+    }
+
+    if (isFollowing) {
+      try {
+        await this.prisma.follows.create({
+          data: {
+            followerId,
+            followingId,
+          }
+        });
+      } catch (e) {
+        // Ignore if already exists
+      }
+    } else {
+      await this.prisma.follows.deleteMany({
+        where: {
+          followerId,
+          followingId,
+        }
+      });
+    }
+
+    return { success: true };
+  }
 }

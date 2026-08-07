@@ -65,9 +65,12 @@ export declare class UsersController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
+        userId: string;
         eventId: string;
         tierId: string | null;
-        userId: string;
+        status: string;
     })[]>;
+    toggleFollow(id: string, isFollowing: boolean, req: any): Promise<{
+        success: boolean;
+    }>;
 }

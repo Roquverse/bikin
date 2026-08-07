@@ -135,6 +135,32 @@ let UsersService = class UsersService {
             }
         });
     }
+    async toggleFollow(followingId, followerId, isFollowing) {
+        if (followingId === followerId) {
+            throw new Error('You cannot follow yourself');
+        }
+        if (isFollowing) {
+            try {
+                await this.prisma.follows.create({
+                    data: {
+                        followerId,
+                        followingId,
+                    }
+                });
+            }
+            catch (e) {
+            }
+        }
+        else {
+            await this.prisma.follows.deleteMany({
+                where: {
+                    followerId,
+                    followingId,
+                }
+            });
+        }
+        return { success: true };
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

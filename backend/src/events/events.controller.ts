@@ -53,4 +53,10 @@ export class EventsController {
   async addComment(@Param('id') id: string, @Body() data: any, @Request() req) {
     return this.eventsService.addEventComment(id, req.user.id, data);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/like')
+  async toggleLike(@Param('id') id: string, @Body('isLiked') isLiked: boolean, @Request() req) {
+    return this.eventsService.toggleLike(id, req.user.id, isLiked);
+  }
 }

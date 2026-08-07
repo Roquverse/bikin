@@ -44,6 +44,9 @@ let EventsController = class EventsController {
     async addComment(id, data, req) {
         return this.eventsService.addEventComment(id, req.user.id, data);
     }
+    async toggleLike(id, isLiked, req) {
+        return this.eventsService.toggleLike(id, req.user.id, isLiked);
+    }
 };
 exports.EventsController = EventsController;
 __decorate([
@@ -119,6 +122,16 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], EventsController.prototype, "addComment", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)(':id/like'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('isLiked')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Boolean, Object]),
+    __metadata("design:returntype", Promise)
+], EventsController.prototype, "toggleLike", null);
 exports.EventsController = EventsController = __decorate([
     (0, common_1.Controller)('events'),
     __metadata("design:paramtypes", [events_service_1.EventsService])

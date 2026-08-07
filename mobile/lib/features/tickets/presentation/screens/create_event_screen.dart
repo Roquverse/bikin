@@ -9,6 +9,7 @@ import '../../../profile/data/repositories/events_repository.dart';
 import '../../../feed/presentation/providers/feed_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
+import '../../../feed/presentation/providers/location_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
   final File? initialMedia;
@@ -570,7 +571,62 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            _buildGlassTextField(hint: 'Venue or Location', icon: Icons.location_on, controller: _venueController),
+                            _buildGlassTextField(
+                              hint: 'Venue or Location', 
+                              icon: Icons.location_on, 
+                              controller: _venueController,
+                              readOnly: true,
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) {
+                                    return Container(
+                                      height: 350,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.surfaceElevated,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(24),
+                                          topRight: Radius.circular(24),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 16, bottom: 8),
+                                            child: Text('Select Location', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                          ),
+                                          Expanded(
+                                            child: ref.watch(availableLocationsProvider).when(
+                                              data: (locations) {
+                                                // Exclude 'All' from creation choices
+                                                final creatableLocations = locations.where((l) => l != 'All').toList();
+                                                return ListView.builder(
+                                                  itemCount: creatableLocations.length,
+                                                  itemBuilder: (context, index) {
+                                                    final loc = creatableLocations[index];
+                                                    return ListTile(
+                                                      title: Text(loc, style: const TextStyle(color: Colors.white)),
+                                                      leading: const Icon(Icons.location_city, color: AppColors.offWhite),
+                                                      onTap: () {
+                                                        _venueController.text = loc;
+                                                        Navigator.pop(context);
+                                                      },
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
+                                              error: (_, __) => const Center(child: Text('Failed to load locations', style: TextStyle(color: AppColors.error))),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                );
+                              }
+                            ),
                           ],
                         ),
                       ),

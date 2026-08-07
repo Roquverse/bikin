@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Put, Post, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
 
@@ -35,5 +35,11 @@ export class UsersController {
   @Get('me/tickets')
   async getMyTickets(@Request() req) {
     return this.usersService.getUserTickets(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/follow')
+  async toggleFollow(@Param('id') id: string, @Body('isFollowing') isFollowing: boolean, @Request() req) {
+    return this.usersService.toggleFollow(id, req.user.id, isFollowing);
   }
 }

@@ -23,4 +23,17 @@ class Feed extends _$Feed {
       return [...currentVideos, ...moreVideos];
     });
   }
+
+  void updateVideo(VideoModel updatedVideo) {
+    if (!state.hasValue) return;
+    
+    final currentList = state.value!;
+    final index = currentList.indexWhere((v) => v.id == updatedVideo.id);
+    
+    if (index != -1) {
+      final newList = List<VideoModel>.from(currentList);
+      newList[index] = updatedVideo;
+      state = AsyncValue.data(newList);
+    }
+  }
 }
