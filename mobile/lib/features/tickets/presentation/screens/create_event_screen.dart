@@ -1,13 +1,21 @@
 import 'dart:io';
+import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
-import '../../../../features/auth/presentation/widgets/custom_text_field.dart';
 
 class CreateEventScreen extends StatefulWidget {
-  const CreateEventScreen({super.key});
+  final File? initialMedia;
+  final bool isInitialMediaImage;
+
+  const CreateEventScreen({
+    super.key,
+    this.initialMedia,
+    this.isInitialMediaImage = false,
+  });
 
   @override
   State<CreateEventScreen> createState() => _CreateEventScreenState();
@@ -18,11 +26,33 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
   final TextEditingController _venueController = TextEditingController();
+  final TextEditingController _captionController = TextEditingController();
   
-  File? _selectedVideo;
+  File? _selectedMedia;
+  bool _isImage = false;
   VideoPlayerController? _videoController;
   final ImagePicker _picker = ImagePicker();
   bool _isPickingVideo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialMedia != null) {
+      _selectedMedia = widget.initialMedia;
+      _isImage = widget.isInitialMediaImage;
+      if (!_isImage) {
+        _initializeVideo(_selectedMedia!);
+      }
+    }
+  }
+
+  Future<void> _initializeVideo(File file) async {
+    _videoController = VideoPlayerController.file(file);
+    await _videoController!.initialize();
+    _videoController!.setLooping(true);
+    if (mounted) setState(() {});
+    _videoController!.play();
+  }
 
   @override
   void dispose() {
@@ -30,6 +60,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     _dateController.dispose();
     _timeController.dispose();
     _venueController.dispose();
+    _captionController.dispose();
     _videoController?.dispose();
     super.dispose();
   }
@@ -40,31 +71,31 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     });
     
     try {
-      final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+      final XFile? media = await _picker.pickMedia();
       
-      if (video != null) {
-        final file = File(video.path);
+      if (media != null) {
+        final file = File(media.path);
+        final ext = media.path.split('.').last.toLowerCase();
+        final isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
         
-        // Dispose old controller if exists
         if (_videoController != null) {
           await _videoController!.dispose();
+          _videoController = null;
         }
         
-        _videoController = VideoPlayerController.file(file);
-        await _videoController!.initialize();
-        _videoController!.setLooping(true);
-        
         setState(() {
-          _selectedVideo = file;
+          _selectedMedia = file;
+          _isImage = isImg;
         });
         
-        // Auto play the selected video preview
-        _videoController!.play();
+        if (!isImg) {
+          await _initializeVideo(file);
+        }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking video: $e')),
+          SnackBar(content: Text('Error picking media: $e')),
         );
       }
     } finally {
@@ -76,305 +107,61 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.primaryBackground,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.surfaceElevated.withAlpha(128),
-                      ),
-                      child: const Icon(Icons.close, color: AppColors.offWhite, size: 20),
-                    ),
-                  ),
-                  const Text(
-                    'New Event',
-                    style: TextStyle(
-                      color: AppColors.offWhite,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Drafts',
-                      style: TextStyle(
-                        color: AppColors.accentCta.withAlpha(200),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Video Placeholder / Preview
-                    GestureDetector(
-                      onTap: _pickVideo,
-                      child: Container(
-                        height: 320,
-                        width: double.infinity,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceElevated,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.accentCta.withAlpha(40)),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (_isPickingVideo)
-                              const CircularProgressIndicator(color: AppColors.accentCta)
-                            else if (_videoController != null && _videoController!.value.isInitialized)
-                              SizedBox.expand(
-                                child: FittedBox(
-                                  fit: BoxFit.cover,
-                                  child: SizedBox(
-                                    width: _videoController!.value.size.width,
-                                    height: _videoController!.value.size.height,
-                                    child: VideoPlayer(_videoController!),
-                                  ),
-                                ),
-                              )
-                            else
-                              const Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.video_library_outlined, size: 48, color: AppColors.secondary),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    'Tap to upload vertical video',
-                                    style: TextStyle(color: AppColors.secondary, fontSize: 13, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              
-                            // Custom progress timeline overlay
-                            Positioned(
-                              bottom: 16,
-                              left: 16,
-                              right: 16,
-                              child: Row(
-                                children: [
-                                  const Text('0:00', style: TextStyle(color: AppColors.offWhite, fontSize: 12)),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Container(
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primaryBackground,
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Container(
-                                          width: 80,
-                                          height: 4,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.accentCta,
-                                            borderRadius: BorderRadius.circular(2),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _videoController != null && _videoController!.value.isInitialized 
-                                      ? '${_videoController!.value.duration.inSeconds}s'
-                                      : '0:15', 
-                                    style: const TextStyle(color: AppColors.offWhite, fontSize: 12)
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Caption Input
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceElevated,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: TextField(
-                        maxLines: 2,
-                        style: const TextStyle(color: AppColors.offWhite),
-                        decoration: InputDecoration(
-                          hintText: 'Write a captivating caption...\n#LagosNights #Afrobeats',
-                          hintStyle: TextStyle(color: AppColors.secondary.withAlpha(150), height: 1.5),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Event Details Section
-                    const Text(
-                      'Event Details',
-                      style: TextStyle(
-                        color: AppColors.offWhite,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      controller: _nameController,
-                      hintText: 'Event Name',
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CustomTextField(
-                            controller: _dateController,
-                            hintText: 'Select Date',
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CustomTextField(
-                            controller: _timeController,
-                            hintText: 'Time',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    CustomTextField(
-                      controller: _venueController,
-                      hintText: 'Search Venue or Location',
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Ticket Tiers Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'TICKET TIERS',
-                          style: TextStyle(
-                            color: AppColors.secondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {},
-                          child: const Row(
-                            children: [
-                              Icon(Icons.add_circle_outline, color: AppColors.accentCta, size: 16),
-                              SizedBox(width: 4),
-                              Text(
-                                'Add Tier',
-                                style: TextStyle(
-                                  color: AppColors.accentCta,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    _TicketTierCard(
-                      title: 'Regular',
-                      subtitle: 'General Admission',
-                      price: '₦5,000',
-                      borderColor: Colors.purple.shade300,
-                    ),
-                    const SizedBox(height: 12),
-                    _TicketTierCard(
-                      title: 'VIP',
-                      subtitle: 'Backstage Access',
-                      price: '₦25,000',
-                      borderColor: AppColors.accentCta,
-                    ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-            ),
-            
-            // Bottom Action
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: PrimaryButton(
-                  text: 'Post & List Event',
-                  onPressed: () {},
-                ),
-              ),
-            ),
-          ],
+  Widget _buildGlassmorphicCard({required Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withAlpha(20),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withAlpha(40), width: 1),
+          ),
+          child: child,
         ),
       ),
     );
   }
-}
 
-class _TicketTierCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String price;
-  final Color borderColor;
-
-  const _TicketTierCard({
-    required this.title,
-    required this.subtitle,
-    required this.price,
-    required this.borderColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildGlassTextField({
+    required String hint, 
+    required IconData icon, 
+    required TextEditingController controller,
+    bool readOnly = false,
+    VoidCallback? onTap,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(24),
-        border: Border(
-          left: BorderSide(color: borderColor, width: 4),
-          top: BorderSide(color: AppColors.secondary.withAlpha(40)),
-          right: BorderSide(color: AppColors.secondary.withAlpha(40)),
-          bottom: BorderSide(color: AppColors.secondary.withAlpha(40)),
+        color: Colors.black.withAlpha(40),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withAlpha(20)),
+      ),
+      child: TextField(
+        controller: controller,
+        readOnly: readOnly,
+        onTap: onTap,
+        style: const TextStyle(color: Colors.white, fontSize: 14),
+        decoration: InputDecoration(
+          icon: Icon(icon, color: Colors.white70, size: 20),
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white60),
+          border: InputBorder.none,
+          isDense: true,
         ),
+      ),
+    );
+  }
+
+  Widget _buildTicketTier({required String title, required String subtitle, required String price, required Color color}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(40),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withAlpha(100), width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -382,37 +169,365 @@ class _TicketTierCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.offWhite,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
               const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: AppColors.secondary,
-                  fontSize: 12,
-                ),
-              ),
+              Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
             ],
           ),
-          Row(
-            children: [
-              Text(
-                price,
-                style: const TextStyle(
-                  color: AppColors.offWhite,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          Text(price, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // 1. Background Video or Placeholder
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                if (_videoController == null) {
+                  _pickVideo();
+                } else {
+                  setState(() {
+                    if (_videoController!.value.isPlaying) {
+                      _videoController!.pause();
+                    } else {
+                      _videoController!.play();
+                    }
+                  });
+                }
+              },
+              child: Container(
+                color: const Color(0xFF111111),
+                child: _selectedMedia != null
+                  ? (_isImage
+                      ? Image.file(_selectedMedia!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                      : (_videoController != null && _videoController!.value.isInitialized
+                          ? FittedBox(
+                              fit: BoxFit.cover,
+                              child: SizedBox(
+                                width: _videoController!.value.size.width,
+                                height: _videoController!.value.size.height,
+                                child: VideoPlayer(_videoController!),
+                              ),
+                            )
+                          : const Center(child: CircularProgressIndicator(color: AppColors.accentCta))))
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isPickingVideo)
+                          const CircularProgressIndicator(color: AppColors.accentCta)
+                        else ...[
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withAlpha(15),
+                              border: Border.all(color: Colors.white.withAlpha(30)),
+                            ),
+                            child: const Icon(Icons.movie_creation_outlined, color: Colors.white, size: 56),
+                          ),
+                          const SizedBox(height: 24),
+                          const Text(
+                            'Tap to upload event media',
+                            style: TextStyle(
+                              color: Colors.white, 
+                              fontSize: 18, 
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Vertical media (9:16) performs best',
+                            style: TextStyle(color: Colors.white60, fontSize: 13),
+                          ),
+                        ]
+                      ],
+                    ),
+              ),
+            ),
+          ),
+
+          // 2. Gradient Overlay for readability
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withAlpha(150), 
+                      Colors.transparent,
+                      Colors.transparent,
+                      Colors.black.withAlpha(150),
+                      Colors.black.withAlpha(240),
+                      Colors.black, 
+                    ],
+                    stops: const [0.0, 0.15, 0.4, 0.7, 0.9, 1.0],
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              const Icon(Icons.more_vert, color: AppColors.secondary, size: 20),
-            ],
+            ),
+          ),
+          
+          // Show play icon if paused
+          if (_videoController != null && _videoController!.value.isInitialized && !_videoController!.value.isPlaying)
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: Center(
+                  child: Icon(Icons.play_arrow_rounded, color: Colors.white54, size: 80),
+                ),
+              ),
+            ),
+
+          // 3. Scrollable Form Content
+          SafeArea(
+            child: Column(
+              children: [
+                // Top Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(100),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, color: Colors.white, size: 24),
+                        ),
+                      ),
+                      const Spacer(),
+                      if (_videoController != null)
+                        GestureDetector(
+                          onTap: _pickVideo,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(120),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white.withAlpha(40)),
+                            ),
+                            child: const Row(
+                              children: [
+                                 Icon(Icons.flip_camera_ios_outlined, color: Colors.white, size: 16),
+                                 SizedBox(width: 6),
+                                 Text('Change', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('Drafts', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Form
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.35), 
+                      
+                      // Caption
+                      TextField(
+                        controller: _captionController,
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+                        maxLines: 4,
+                        minLines: 1,
+                        decoration: const InputDecoration(
+                          hintText: 'Write a captivating caption...\n#LagosNights #Afrobeats',
+                          hintStyle: TextStyle(color: Colors.white70, fontSize: 18),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Glassmorphic Details Card
+                      _buildGlassmorphicCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.info_outline, color: Colors.white, size: 20),
+                                SizedBox(width: 8),
+                                Text('Event Details', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildGlassTextField(hint: 'Event Name', icon: Icons.celebration, controller: _nameController),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildGlassTextField(
+                                    hint: 'Date', 
+                                    icon: Icons.calendar_today, 
+                                    controller: _dateController,
+                                    readOnly: true,
+                                    onTap: () async {
+                                      final date = await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                                      );
+                                      if (date != null) {
+                                        _dateController.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                                      }
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildGlassTextField(
+                                    hint: 'Time', 
+                                    icon: Icons.access_time, 
+                                    controller: _timeController,
+                                    readOnly: true,
+                                    onTap: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (BuildContext builder) {
+                                          return Container(
+                                            height: 280,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.surfaceElevated,
+                                              borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(24),
+                                                topRight: Radius.circular(24),
+                                              ),
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.only(right: 16, top: 16),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    children: [
+                                                      TextButton(
+                                                        onPressed: () => Navigator.of(context).pop(),
+                                                        child: const Text('Done', style: TextStyle(color: AppColors.accentCta, fontSize: 16, fontWeight: FontWeight.bold)),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: CupertinoTheme(
+                                                    data: const CupertinoThemeData(
+                                                      textTheme: CupertinoTextThemeData(
+                                                        dateTimePickerTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+                                                      ),
+                                                    ),
+                                                    child: CupertinoDatePicker(
+                                                      mode: CupertinoDatePickerMode.time,
+                                                      initialDateTime: DateTime.now(),
+                                                      onDateTimeChanged: (DateTime newDateTime) {
+                                                        final timeStr = TimeOfDay.fromDateTime(newDateTime).format(context);
+                                                        _timeController.text = timeStr;
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _buildGlassTextField(hint: 'Venue or Location', icon: Icons.location_on, controller: _venueController),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Tickets Card
+                      _buildGlassmorphicCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(Icons.local_activity_outlined, color: Colors.white, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('Tickets', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                GestureDetector(
+                                  onTap: () {},
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accentCta.withAlpha(40),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppColors.accentCta),
+                                    ),
+                                    child: const Text('Add Tier', style: TextStyle(color: AppColors.accentCta, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildTicketTier(title: 'Regular', subtitle: 'General Admission', price: '₦5,000', color: Colors.purple.shade300),
+                            const SizedBox(height: 12),
+                            _buildTicketTier(title: 'VIP', subtitle: 'Backstage Access', price: '₦25,000', color: AppColors.accentCta),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Post Button
+                      PrimaryButton(
+                        text: 'Post & List Event',
+                        onPressed: () {
+                          if (_nameController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please fill all required details (Name, Date, Time)')),
+                            );
+                            return;
+                          }
+                          
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Event created successfully!')),
+                          );
+                          
+                          Future.delayed(const Duration(milliseconds: 1500), () {
+                            if (mounted) Navigator.pop(context);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

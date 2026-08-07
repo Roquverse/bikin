@@ -8,6 +8,8 @@ import '../../features/tickets/presentation/screens/bookings_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/auth/presentation/providers/auth_state_provider.dart';
 import '../../features/tickets/presentation/screens/create_event_screen.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -19,20 +21,28 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeFeedScreen(),
-    ExploreScreen(),
-    BookingsScreen(),
-    ProfileScreen(),
-  ];
 
-  void _showCreateEventSheet(BuildContext context) {
+  void _showCreateEventSheet(BuildContext context) async {
+    final picker = ImagePicker();
+    final XFile? media = await picker.pickMedia();
+    
+    if (media == null) return;
+    
+    final ext = media.path.split('.').last.toLowerCase();
+    final isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+    final file = File(media.path);
+
+    if (!context.mounted) return;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const CreateEventScreen(),
+      builder: (context) => CreateEventScreen(
+        initialMedia: file,
+        isInitialMediaImage: isImg,
+      ),
     );
   }
 
@@ -56,7 +66,12 @@ class _MainShellState extends ConsumerState<MainShell> {
         backgroundColor: AppColors.primaryBackground,
         body: IndexedStack(
           index: _currentIndex,
-          children: _screens,
+          children: [
+            HomeFeedScreen(isTabActive: _currentIndex == 0),
+            const ExploreScreen(),
+            const BookingsScreen(),
+            const ProfileScreen(),
+          ],
         ),
         bottomNavigationBar: _BikinNavBar(
           currentIndex: _currentIndex,

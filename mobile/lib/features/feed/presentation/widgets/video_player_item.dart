@@ -22,6 +22,8 @@ class VideoPlayerItem extends StatefulWidget {
 class _VideoPlayerItemState extends State<VideoPlayerItem> {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
+  bool _isPaused = false;
+  bool _showActionIcon = false;
 
   @override
   void initState() {
@@ -43,7 +45,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
     if (_controller != null && _isInitialized) {
       if (widget.isActive && !oldWidget.isActive) {
-        _controller!.play();
+        if (!_isPaused) _controller!.play();
       } else if (!widget.isActive && oldWidget.isActive) {
         _controller!.pause();
       }
@@ -62,7 +64,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
         setState(() {
           _isInitialized = true;
         });
-        if (widget.isActive) {
+        if (widget.isActive && !_isPaused) {
           _controller!.play();
         }
       }
@@ -87,6 +89,29 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     super.dispose();
   }
 
+  void _togglePlay() {
+    if (_controller == null || !_isInitialized) return;
+    
+    setState(() {
+      if (_controller!.value.isPlaying) {
+        _controller!.pause();
+        _isPaused = true;
+      } else {
+        _controller!.play();
+        _isPaused = false;
+      }
+      _showActionIcon = true;
+    });
+
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        setState(() {
+          _showActionIcon = false;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized || _controller == null) {
@@ -95,22 +120,38 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
     }
 
     return GestureDetector(
-      onTap: () {
-        if (_controller!.value.isPlaying) {
-          _controller!.pause();
-        } else {
-          _controller!.play();
-        }
-      },
-      child: SizedBox.expand(
-        child: FittedBox(
-          fit: BoxFit.cover,
-          child: SizedBox(
-            width: _controller!.value.size.width,
-            height: _controller!.value.size.height,
-            child: VideoPlayer(_controller!),
+      onTap: _togglePlay,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: _controller!.value.size.width,
+              height: _controller!.value.size.height,
+              child: VideoPlayer(_controller!),
+            ),
           ),
-        ),
+          if (_showActionIcon || _isPaused)
+            Center(
+              child: AnimatedOpacity(
+                opacity: _showActionIcon ? 1.0 : (_isPaused ? 0.6 : 0.0),
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(100),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                    color: Colors.white,
+                    size: 64,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

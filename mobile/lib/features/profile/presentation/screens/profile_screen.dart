@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../auth/presentation/providers/auth_state_provider.dart';
+import '../providers/profile_provider.dart';
+import '../widgets/organizer_event_details_sheet.dart';
+import '../widgets/attendee_ticket_details_sheet.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../core/widgets/buttons/outline_button.dart';
 
@@ -302,8 +305,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                         // Reels Grid
                         _ProfileGrid(isOrganizer: isOrganizer),
                         
-                        // Tickets tab (placeholder)
-                        const Center(child: Text('Tickets List', style: TextStyle(color: AppColors.secondary))),
+                        // Tickets tab
+                        _TicketsList(isOrganizer: isOrganizer),
                         
                         // Liked tab (placeholder)
                         const Center(child: Text('Liked Reels', style: TextStyle(color: AppColors.secondary))),
@@ -340,61 +343,218 @@ class _StatColumn extends StatelessWidget {
   }
 }
 
-class _ProfileGrid extends StatelessWidget {
+class _ProfileGrid extends ConsumerWidget {
   final bool isOrganizer;
 
   const _ProfileGrid({required this.isOrganizer});
 
   @override
-  Widget build(BuildContext context) {
-    // Generate dummy grid items based on mockup
-    final dummyViews = ['4.2k', '8.1k', '2.5k', '11k', '900', '5.6k'];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventsState = ref.watch(userEventsProvider);
     
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 0.65, // Taller aspect ratio for reels
-      ),
-      itemCount: dummyViews.length,
-      itemBuilder: (context, index) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.surfaceElevated,
-            borderRadius: BorderRadius.circular(12),
-            image: const DecorationImage(
-              image: NetworkImage('https://source.unsplash.com/random/400x600/?concert,dj,party'),
-              fit: BoxFit.cover,
-            ),
+    return eventsState.when(
+      data: (events) {
+        if (events.isEmpty) {
+          return const Center(child: Text('No reels yet', style: TextStyle(color: AppColors.secondary)));
+        }
+        return GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 0.65,
           ),
-          child: Stack(
-            children: [
-              Positioned(
-                bottom: 8,
-                left: 8,
+          itemCount: events.length,
+          itemBuilder: (context, index) {
+            final event = events[index];
+            return Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.accentCta.withAlpha(50),
+                            AppColors.secondary.withAlpha(50),
+                          ],
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(Icons.play_circle_outline, color: Colors.white.withAlpha(150), size: 32),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.favorite_border, color: Colors.white, size: 12),
+                        const SizedBox(width: 2),
+                        Text(
+                          event.likesCount.toString(),
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (index == 0) // Just keeping the pin on the first one as in mockup
+                    const Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Icon(Icons.push_pin, color: Colors.white, size: 14),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
+      error: (err, stack) => const Center(child: Text('Error loading reels', style: TextStyle(color: AppColors.error))),
+    );
+  }
+}
+
+class _TicketsList extends ConsumerWidget {
+  final bool isOrganizer;
+
+  const _TicketsList({required this.isOrganizer});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (isOrganizer) {
+      final eventsState = ref.watch(userEventsProvider);
+      return eventsState.when(
+        data: (events) {
+          if (events.isEmpty) {
+            return const Center(child: Text('No ticket listings yet', style: TextStyle(color: AppColors.secondary)));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              final event = events[index];
+              return GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => OrganizerEventDetailsSheet(event: event),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.accentCta.withAlpha(30),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.event, color: AppColors.accentCta),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(event.caption, style: const TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.bold, fontSize: 16)),
+                            const SizedBox(height: 4),
+                            const Text('Tap to view bookings', style: TextStyle(color: AppColors.secondary, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
+        error: (err, stack) => const Center(child: Text('Error loading events', style: TextStyle(color: AppColors.error))),
+      );
+    }
+
+    final ticketsState = ref.watch(userTicketsProvider);
+
+    return ticketsState.when(
+      data: (tickets) {
+        if (tickets.isEmpty) {
+          return const Center(child: Text('No tickets yet', style: TextStyle(color: AppColors.secondary)));
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: tickets.length,
+          itemBuilder: (context, index) {
+            final ticket = tickets[index];
+            final eventTitle = ticket['event']['title'] ?? 'Unknown Event';
+            
+            return GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => AttendeeTicketDetailsSheet(ticket: ticket),
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceElevated,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Row(
                   children: [
-                    const Icon(Icons.play_arrow_outlined, color: Colors.white, size: 14),
-                    const SizedBox(width: 2),
-                    Text(
-                      dummyViews[index],
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.accentCta.withAlpha(30),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.local_activity, color: AppColors.accentCta),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(eventTitle, style: const TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text(ticket['status'] ?? 'VALID', style: const TextStyle(color: AppColors.success, fontSize: 12)),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (index == 0) // Pin icon on the first one
-                const Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Icon(Icons.push_pin, color: Colors.white, size: 14),
-                ),
-            ],
-          ),
+            );
+          },
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
+      error: (err, stack) => const Center(child: Text('Error loading tickets', style: TextStyle(color: AppColors.error))),
     );
   }
 }

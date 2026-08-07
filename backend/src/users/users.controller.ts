@@ -12,4 +12,16 @@ export class UsersController {
     // req.user is populated by JwtStrategy
     return req.user;
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me/events')
+  async getMyEvents(@Request() req) {
+    return this.usersService.getUserEvents(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me/tickets')
+  async getMyTickets(@Request() req) {
+    return this.usersService.getUserTickets(req.user.id);
+  }
 }

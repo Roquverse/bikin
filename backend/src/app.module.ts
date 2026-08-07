@@ -9,9 +9,10 @@ import { MediaModule } from './media/media.module';
 import { PaymentsModule } from './payments/payments.module';
 import { FeedModule } from './feed/feed.module';
 import { MailModule } from './common/mail/mail.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
-  imports: [PrismaModule, RedisModule, AuthModule, UsersModule, MediaModule, PaymentsModule, FeedModule, MailModule],
+  imports: [PrismaModule, RedisModule, AuthModule, UsersModule, MediaModule, PaymentsModule, FeedModule, MailModule, EventsModule],
   controllers: [AppController],
   providers: [AppService],
 })

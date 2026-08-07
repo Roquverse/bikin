@@ -106,7 +106,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            height: size.height * 0.45,
             child: Container(
               decoration: const BoxDecoration(
                 color: AppColors.surfaceElevated,
@@ -117,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               padding: const EdgeInsets.fromLTRB(32, 40, 32, 32),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Column(
                     children: [
@@ -149,7 +148,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ],
                   ),
-                  
+                  const SizedBox(height: 32),
                   Column(
                     children: [
                       // Page Indicators

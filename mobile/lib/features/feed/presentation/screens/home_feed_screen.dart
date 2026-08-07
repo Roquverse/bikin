@@ -12,7 +12,12 @@ import '../widgets/ticket_booking_sheet.dart';
 import '../widgets/comments_sheet.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
-  const HomeFeedScreen({super.key});
+  final bool isTabActive;
+  
+  const HomeFeedScreen({
+    super.key,
+    this.isTabActive = true,
+  });
 
   @override
   ConsumerState<HomeFeedScreen> createState() => _HomeFeedScreenState();
@@ -21,6 +26,7 @@ class HomeFeedScreen extends ConsumerStatefulWidget {
 class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
+  bool _isOverlayOpen = false;
 
   @override
   void dispose() {
@@ -28,8 +34,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     super.dispose();
   }
 
-  void _openComments(String videoId, int commentsCount) {
-    showModalBottomSheet(
+  void _openComments(String videoId, int commentsCount) async {
+    setState(() => _isOverlayOpen = true);
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -38,15 +45,18 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         commentsCount: commentsCount,
       ),
     );
+    if (mounted) setState(() => _isOverlayOpen = false);
   }
 
-  void _openTickets(String videoId) {
-    showModalBottomSheet(
+  void _openTickets(String videoId) async {
+    setState(() => _isOverlayOpen = true);
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => TicketBookingSheet(videoId: videoId),
     );
+    if (mounted) setState(() => _isOverlayOpen = false);
   }
 
   @override
@@ -76,7 +86,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 },
                 itemBuilder: (context, index) {
                   final video = videos[index];
-                  final isActive = _currentIndex == index;
+                  final isActive = _currentIndex == index && widget.isTabActive && !_isOverlayOpen;
                   final shouldInitialize = (index - _currentIndex).abs() <= 2;
 
                   return HeartBurstAnimator(
