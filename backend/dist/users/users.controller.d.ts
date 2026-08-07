@@ -3,6 +3,17 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     getProfile(req: any): any;
+    updateProfile(req: any, data: any): Promise<{
+        name: string;
+        id: string;
+        email: string;
+        password: string;
+        avatarUrl: string | null;
+        bio: string | null;
+        role: import(".prisma/client").$Enums.Role;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
     getMyStats(req: any): Promise<{
         followersCount: number;
         followingCount: number;

@@ -22,7 +22,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  String _accountType = 'attendee';
+  final String _accountType = 'organizer';
   
   bool _isPasswordValid = false;
 
@@ -152,40 +152,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Account Type Toggle
-                    Center(
-                      child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'attendee', label: Text('Attendee')),
-                          ButtonSegment(value: 'organizer', label: Text('Organizer')),
-                        ],
-                        selected: {_accountType},
-                        onSelectionChanged: (Set<String> newSelection) {
-                          setState(() {
-                            _accountType = newSelection.first;
-                          });
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
-                              if (states.contains(WidgetState.selected)) {
-                                return AppColors.accentCta;
-                              }
-                              return Colors.white;
-                            },
-                          ),
-                          foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
-                              if (states.contains(WidgetState.selected)) {
-                                return Colors.white;
-                              }
-                              return Colors.black87;
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+
                   
                     // Full Name Field
                     const Text(

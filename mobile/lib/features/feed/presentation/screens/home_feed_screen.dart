@@ -74,40 +74,46 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                 return const Center(child: Text('No videos found', style: TextStyle(color: AppColors.offWhite)));
               }
 
-              return PageView.builder(
-                controller: _pageController,
-                scrollDirection: Axis.vertical,
-                itemCount: videos.length,
-                onPageChanged: (index) {
-                  setState(() => _currentIndex = index);
-                  if (index == videos.length - 2) {
-                    ref.read(feedProvider.notifier).loadMore();
-                  }
+              return RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(feedProvider);
                 },
-                itemBuilder: (context, index) {
-                  final video = videos[index];
-                  final isActive = _currentIndex == index && widget.isTabActive && !_isOverlayOpen;
-                  final shouldInitialize = (index - _currentIndex).abs() <= 2;
+                child: PageView.builder(
+                  controller: _pageController,
+                  scrollDirection: Axis.vertical,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: videos.length,
+                  onPageChanged: (index) {
+                    setState(() => _currentIndex = index);
+                    if (index == videos.length - 2) {
+                      ref.read(feedProvider.notifier).loadMore();
+                    }
+                  },
+                  itemBuilder: (context, index) {
+                    final video = videos[index];
+                    final isActive = _currentIndex == index && widget.isTabActive && !_isOverlayOpen;
+                    final shouldInitialize = (index - _currentIndex).abs() <= 2;
 
-                  return HeartBurstAnimator(
-                    onDoubleTap: () => ref.read(videoInteractionProvider(video.id).notifier).toggleLike(),
-                    child: Stack(
-                      children: [
-                        VideoPlayerItem(
-                          videoUrl: video.videoUrl,
-                          isActive: isActive,
-                          shouldInitialize: shouldInitialize,
-                        ),
-                        FeedOverlay(videoId: video.id),
-                        InteractionRail(
-                          videoId: video.id,
-                          onOpenComments: () => _openComments(video.id, video.commentsCount),
-                          onOpenTickets: () => _openTickets(video.id),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                    return HeartBurstAnimator(
+                      onDoubleTap: () => ref.read(videoInteractionProvider(video.id).notifier).toggleLike(),
+                      child: Stack(
+                        children: [
+                          VideoPlayerItem(
+                            videoUrl: video.videoUrl,
+                            isActive: isActive,
+                            shouldInitialize: shouldInitialize,
+                          ),
+                          FeedOverlay(videoId: video.id),
+                          InteractionRail(
+                            videoId: video.id,
+                            onOpenComments: () => _openComments(video.id, video.commentsCount),
+                            onOpenTickets: () => _openTickets(video.id),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               );
             },
             loading: () => const FeedShimmer(),

@@ -7,6 +7,12 @@ export declare class UsersService {
     findByEmail(email: string): Promise<User | null>;
     findById(id: string): Promise<User | null>;
     updateRole(id: string, role: Role): Promise<User>;
+    updateProfile(id: string, data: {
+        name?: string;
+        avatarUrl?: string;
+        bio?: string;
+        role?: Role;
+    }): Promise<User>;
     getUserStats(userId: string): Promise<{
         followersCount: number;
         followingCount: number;

@@ -23,7 +23,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _localAuth = LocalAuthentication();
-  String _accountType = 'attendee';
 
   @override
   void dispose() {
@@ -176,40 +175,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Account Type Toggle
-                    Center(
-                      child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'attendee', label: Text('Attendee')),
-                          ButtonSegment(value: 'organizer', label: Text('Organizer')),
-                        ],
-                        selected: {_accountType},
-                        onSelectionChanged: (Set<String> newSelection) {
-                          setState(() {
-                            _accountType = newSelection.first;
-                          });
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
-                              if (states.contains(WidgetState.selected)) {
-                                return AppColors.accentCta;
-                              }
-                              return Colors.white;
-                            },
-                          ),
-                          foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
-                              if (states.contains(WidgetState.selected)) {
-                                return Colors.white;
-                              }
-                              return Colors.black87;
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+
                     
                     // Email Field
                     const Text(

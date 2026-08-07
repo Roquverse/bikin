@@ -25,17 +25,17 @@ export declare class EventsController {
     }>;
     getBookings(id: string, req: any): Promise<({
         user: {
+            name: string;
             id: string;
             email: string;
-            name: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        eventId: string;
         status: string;
+        eventId: string;
+        userId: string;
     })[]>;
     updateEvent(id: string, data: any, req: any): Promise<{
         id: string;

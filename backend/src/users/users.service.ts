@@ -25,6 +25,13 @@ export class UsersService {
     });
   }
 
+  async updateProfile(id: string, data: { name?: string, avatarUrl?: string, bio?: string, role?: Role }): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
   async getUserStats(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

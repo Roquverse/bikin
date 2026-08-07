@@ -11,6 +11,8 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/account_type_screen.dart';
 import '../widgets/main_shell.dart';
 import '../../features/tickets/presentation/screens/bookings_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -107,6 +109,14 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: '/home-feed',
         builder: (context, state) => const MainShell(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        pageBuilder: (context, state) => buildSlideFadeTransition(
+          context: context,
+          state: state,
+          child: const EditProfileScreen(),
+        ),
       ),
       GoRoute(
         path: '/bookings',

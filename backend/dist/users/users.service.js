@@ -31,6 +31,12 @@ let UsersService = class UsersService {
             data: { role },
         });
     }
+    async updateProfile(id, data) {
+        return this.prisma.user.update({
+            where: { id },
+            data,
+        });
+    }
     async getUserStats(userId) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },

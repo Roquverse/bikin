@@ -57,6 +57,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
     _controller!.setLooping(true); // Loop indefinitely like TikTok
+    _controller!.setVolume(1.0); // Ensure sound is unmuted
     
     try {
       await _controller!.initialize();

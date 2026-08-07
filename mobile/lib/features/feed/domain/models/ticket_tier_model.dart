@@ -10,4 +10,13 @@ class TicketTierModel {
     required this.price,
     required this.availableQuantity,
   });
+
+  factory TicketTierModel.fromJson(Map<String, dynamic> json) {
+    return TicketTierModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      price: (json['price'] as num).toDouble(),
+      availableQuantity: json['availableQuantity'] as int,
+    );
+  }
 }

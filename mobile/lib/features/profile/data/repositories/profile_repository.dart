@@ -46,6 +46,35 @@ class ProfileRepository {
       return [];
     }
   }
+
+  Future<void> updateProfile({String? name, String? bio, String? avatarUrl, String? role}) async {
+    try {
+      final data = <String, dynamic>{};
+      if (name != null) data['name'] = name;
+      if (bio != null) data['bio'] = bio;
+      if (avatarUrl != null) data['avatarUrl'] = avatarUrl;
+      if (role != null) data['role'] = role;
+
+      await _dio.put('/users/me', data: data);
+    } catch (e) {
+      LoggerUtil.error('Failed to update profile', e);
+      rethrow;
+    }
+  }
+
+  Future<String?> uploadMedia(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+
+      final response = await _dio.post('/media/upload', data: formData);
+      return response.data['url'];
+    } catch (e) {
+      LoggerUtil.error('Failed to upload media', e);
+      return null;
+    }
+  }
 }
 
 @riverpod

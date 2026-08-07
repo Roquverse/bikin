@@ -18,7 +18,7 @@ class AuthApiClient {
 
 @riverpod
 AuthApiClient authApiClient(Ref ref) {
-  final String baseUrl = Platform.isAndroid ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
+  final String baseUrl = 'https://backend-production-cb05.up.railway.app';
 
   final dio = Dio(BaseOptions(
     baseUrl: baseUrl,

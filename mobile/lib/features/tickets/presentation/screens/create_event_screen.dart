@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
-import '../../profile/data/repositories/events_repository.dart';
+import '../../../profile/data/repositories/events_repository.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
 
@@ -507,8 +507,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
                       // Post Button
                       PrimaryButton(
-                        text: _isLoading ? 'Creating...' : 'Post & List Event',
-                        onPressed: _isLoading ? () {} : () async {
+                        text: 'Post & List Event',
+                        onPressed: () {
                           if (_nameController.text.isEmpty || _dateController.text.isEmpty || _timeController.text.isEmpty || _selectedMedia == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Please fill all required details and select media')),
@@ -516,37 +516,39 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             return;
                           }
                           
-                          setState(() => _isLoading = true);
-                          
                           final eventsRepo = ref.read(eventsRepositoryProvider);
-                          String? mediaUrl;
+                          final media = _selectedMedia;
+                          final title = _nameController.text;
+                          final description = _captionController.text;
+                          final date = _dateController.text;
+                          final time = _timeController.text;
+                          final location = _venueController.text;
                           
-                          if (_selectedMedia != null) {
-                            mediaUrl = await eventsRepo.uploadMedia(_selectedMedia!);
-                          }
-                          
-                          final success = await eventsRepo.createEvent(
-                            title: _nameController.text,
-                            description: _captionController.text,
-                            date: _dateController.text,
-                            time: _timeController.text,
-                            location: _venueController.text,
-                            price: '5000',
-                            mediaUrl: mediaUrl,
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Creating event in the background...')),
                           );
+                          Navigator.pop(context);
                           
-                          if (mounted) setState(() => _isLoading = false);
-
-                          if (success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Event created successfully!')),
-                            );
-                            if (mounted) Navigator.pop(context);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Failed to create event')),
-                            );
-                          }
+                          Future(() async {
+                            try {
+                              String? mediaUrl;
+                              if (media != null) {
+                                mediaUrl = await eventsRepo.uploadMedia(media);
+                              }
+                              
+                              await eventsRepo.createEvent(
+                                title: title,
+                                description: description,
+                                date: date,
+                                time: time,
+                                location: location,
+                                price: '5000',
+                                mediaUrl: mediaUrl,
+                              );
+                            } catch (e) {
+                              debugPrint('Background event creation failed: $e');
+                            }
+                          });
                         },
                       ),
                       const SizedBox(height: 40),

@@ -188,17 +188,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                                 shape: BoxShape.circle,
                                 border: Border.all(color: AppColors.accentCta, width: 2),
                               ),
-                              child: Container(
-                                width: 90,
-                                height: 90,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.surfaceElevated,
-                                  image: DecorationImage(
-                                    image: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                              child: CircleAvatar(
+                                radius: 45,
+                                backgroundColor: AppColors.surfaceElevated,
+                                backgroundImage: user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
+                                child: user?.avatarUrl == null
+                                    ? const Icon(Icons.person, size: 50, color: Colors.white54)
+                                    : null,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -215,16 +211,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                             const SizedBox(height: 8),
                             
                             // Bio
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 32),
-                              child: Text(
-                                isOrganizer 
-                                  ? 'Electronic music lover & event curator in Lagos.'
-                                  : 'Exploring the best events in town.',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: AppColors.secondary, fontSize: 14),
+                            if (user?.bio != null && user!.bio!.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                child: Text(
+                                  user.bio!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                                ),
                               ),
-                            ),
+                            ],
                             const SizedBox(height: 24),
 
                             // Stats
@@ -246,15 +243,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () => _showSwitchAccountTypeDialog(context, ref, user?.role ?? 'ATTENDEE'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.accentCta,
-                                        foregroundColor: AppColors.primaryBackground,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                      ),
-                                      child: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    child: PrimaryButton(
+                                      text: 'Edit Profile',
+                                      onPressed: () => context.push('/edit-profile'),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
