@@ -4,8 +4,6 @@ export declare class EventsService {
     constructor(prisma: PrismaService);
     createEvent(organizerId: string, data: any): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
@@ -13,6 +11,8 @@ export declare class EventsService {
         mediaUrl: string | null;
         thumbnailUrl: string | null;
         price: number;
+        createdAt: Date;
+        updatedAt: Date;
         organizerId: string;
     }>;
     getTicketTiers(eventId: string): Promise<{
@@ -28,22 +28,20 @@ export declare class EventsService {
     getEventBookings(eventId: string, organizerId: string): Promise<({
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         eventId: string;
+        userId: string;
         tierId: string | null;
         status: string;
     })[]>;
     updateEvent(eventId: string, organizerId: string, data: any): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
@@ -51,6 +49,8 @@ export declare class EventsService {
         mediaUrl: string | null;
         thumbnailUrl: string | null;
         price: number;
+        createdAt: Date;
+        updatedAt: Date;
         organizerId: string;
     }>;
     deleteEvent(eventId: string, organizerId: string): Promise<{

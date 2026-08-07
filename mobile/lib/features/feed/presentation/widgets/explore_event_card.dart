@@ -63,11 +63,11 @@ class ExploreEventCard extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.location_on, size: 12, color: AppColors.success),
+                  const Icon(Icons.category, size: 12, color: AppColors.success),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      video.location ?? 'Unknown Location',
+                      video.category ?? 'Unknown Category',
                       style: const TextStyle(
                         color: AppColors.secondary,
                         fontSize: 10,

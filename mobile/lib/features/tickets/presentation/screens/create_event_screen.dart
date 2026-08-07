@@ -9,7 +9,7 @@ import '../../../profile/data/repositories/events_repository.dart';
 import '../../../feed/presentation/providers/feed_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
-import '../../../feed/presentation/providers/location_provider.dart';
+import '../../../feed/presentation/providers/category_provider.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
   final File? initialMedia;
@@ -30,8 +30,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _venueController = TextEditingController();
   final TextEditingController _captionController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
   
   File? _selectedImage;
   File? _selectedVideo;
@@ -69,6 +71,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     _nameController.dispose();
     _dateController.dispose();
     _timeController.dispose();
+    _categoryController.dispose();
     _venueController.dispose();
     _captionController.dispose();
     _videoController?.dispose();
@@ -503,6 +506,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                         lastDate: DateTime.now().add(const Duration(days: 365)),
                                       );
                                       if (date != null) {
+                                        _selectedDate = date;
                                         _dateController.text = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
                                       }
                                     },
@@ -572,9 +576,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             ),
                             const SizedBox(height: 12),
                             _buildGlassTextField(
-                              hint: 'Venue or Location', 
-                              icon: Icons.location_on, 
-                              controller: _venueController,
+                              hint: 'Category', 
+                              icon: Icons.category, 
+                              controller: _categoryController,
                               readOnly: true,
                               onTap: () {
                                 showModalBottomSheet(
@@ -592,24 +596,23 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                       ),
                                       child: Column(
                                         children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 16, bottom: 8),
-                                            child: Text('Select Location', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                          const Padding(
+                                            padding: EdgeInsets.only(top: 16, bottom: 8),
+                                            child: Text('Select Category', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                                           ),
                                           Expanded(
-                                            child: ref.watch(availableLocationsProvider).when(
-                                              data: (locations) {
-                                                // Exclude 'All' from creation choices
-                                                final creatableLocations = locations.where((l) => l != 'All').toList();
+                                            child: ref.watch(availableCategoriesProvider).when(
+                                              data: (categories) {
+                                                final creatableCategories = categories.where((c) => c != 'All').toList();
                                                 return ListView.builder(
-                                                  itemCount: creatableLocations.length,
+                                                  itemCount: creatableCategories.length,
                                                   itemBuilder: (context, index) {
-                                                    final loc = creatableLocations[index];
+                                                    final cat = creatableCategories[index];
                                                     return ListTile(
-                                                      title: Text(loc, style: const TextStyle(color: Colors.white)),
-                                                      leading: const Icon(Icons.location_city, color: AppColors.offWhite),
+                                                      title: Text(cat, style: const TextStyle(color: Colors.white)),
+                                                      leading: const Icon(Icons.label_outline, color: AppColors.offWhite),
                                                       onTap: () {
-                                                        _venueController.text = loc;
+                                                        _categoryController.text = cat;
                                                         Navigator.pop(context);
                                                       },
                                                     );
@@ -617,7 +620,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                                 );
                                               },
                                               loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
-                                              error: (_, __) => const Center(child: Text('Failed to load locations', style: TextStyle(color: AppColors.error))),
+                                              error: (_, __) => const Center(child: Text('Failed to load categories', style: TextStyle(color: AppColors.error))),
                                             ),
                                           ),
                                         ],
@@ -695,7 +698,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           final description = _captionController.text;
                           final date = _dateController.text;
                           final time = _timeController.text;
-                          final location = _venueController.text;
+                          final category = _categoryController.text;
                           
                           try {
                             String? thumbnailUrl;
@@ -713,7 +716,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                               description: description,
                               date: date,
                               time: time,
-                              location: location,
+                              category: category,
                               price: _tiers.isNotEmpty ? _tiers.first['price'] : '0',
                               mediaUrl: mediaUrl,
                               thumbnailUrl: thumbnailUrl,

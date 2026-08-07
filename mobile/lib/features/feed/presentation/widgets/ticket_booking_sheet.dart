@@ -119,14 +119,11 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 14, color: AppColors.secondary),
-                            const SizedBox(width: 6),
+                            const Icon(Icons.category, size: 14, color: AppColors.secondary),
+                            const SizedBox(width: 4),
                             Text(
-                              widget.video.location ?? 'Location not specified',
-                              style: TextStyle(
-                                color: AppColors.secondary.withAlpha(220),
-                                fontSize: 13,
-                              ),
+                              widget.video.category ?? 'Category not specified',
+                              style: const TextStyle(color: AppColors.secondary, fontSize: 12),
                             ),
                           ],
                         ),

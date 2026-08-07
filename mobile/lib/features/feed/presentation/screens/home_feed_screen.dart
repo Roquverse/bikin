@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/feed_provider.dart';
 import '../providers/video_interaction_provider.dart';
+import '../providers/category_provider.dart';
 import '../widgets/feed_shimmer.dart';
 import '../widgets/video_player_item.dart';
 import '../widgets/feed_overlay.dart';
@@ -123,59 +124,84 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
             ),
           ),
 
-          // Header Overlay (Mockup screen 1 design)
+          // Header Overlay (Categories and Search)
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
-            left: 16,
-            right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Location Picker Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(80),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withAlpha(30), width: 0.5),
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: 40,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ref.watch(availableCategoriesProvider).when(
+                      data: (categories) {
+                        final selectedCategory = ref.watch(selectedCategoryProvider);
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: categories.length,
+                          itemBuilder: (context, index) {
+                            final category = categories[index];
+                            final isSelected = category == selectedCategory;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () {
+                                  ref.read(selectedCategoryProvider.notifier).setCategory(category);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? AppColors.accentCta : Colors.black.withAlpha(80),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: isSelected ? AppColors.accentCta : Colors.white.withAlpha(30),
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      category,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.black : AppColors.offWhite,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 14, color: AppColors.success),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Lagos',
-                        style: TextStyle(
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16, left: 8),
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(80),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withAlpha(30), width: 0.5),
+                        ),
+                        child: const Icon(
+                          Icons.search,
                           color: AppColors.offWhite,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          size: 20,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.offWhite),
-                    ],
-                  ),
-                ),
-
-                // Search Icon
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withAlpha(80),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withAlpha(30), width: 0.5),
-                    ),
-                    child: const Icon(
-                      Icons.search,
-                      color: AppColors.offWhite,
-                      size: 20,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

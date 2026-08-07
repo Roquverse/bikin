@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/video_model.dart';
 import '../../data/feed_repository.dart';
+import 'category_provider.dart';
 
 part 'feed_provider.g.dart';
 
@@ -8,7 +9,8 @@ part 'feed_provider.g.dart';
 class Feed extends _$Feed {
   @override
   FutureOr<List<VideoModel>> build() async {
-    return ref.watch(feedRepositoryProvider).getFeedVideos();
+    final category = ref.watch(selectedCategoryProvider);
+    return ref.watch(feedRepositoryProvider).getFeedVideos(category: category);
   }
 
   Future<void> loadMore() async {
@@ -19,7 +21,8 @@ class Feed extends _$Feed {
     state = const AsyncValue.loading();
     
     state = await AsyncValue.guard(() async {
-      final moreVideos = await ref.read(feedRepositoryProvider).getFeedVideos(page: 2);
+      final category = ref.read(selectedCategoryProvider);
+      final moreVideos = await ref.read(feedRepositoryProvider).getFeedVideos(page: 2, category: category);
       return [...currentVideos, ...moreVideos];
     });
   }

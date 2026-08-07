@@ -22,16 +22,23 @@ let FeedController = class FeedController {
     }
     async getFeed(page, req) {
         const pageNumber = page ? parseInt(page, 10) : 1;
-        const userId = req.user?.id;
-        return this.feedService.getFeedVideos(pageNumber, 10, userId);
-    }
-    async getDiscoverFeed(page, location, req) {
-        const pageNumber = page ? parseInt(page, 10) : 1;
-        const userId = req.user?.id;
-        return this.feedService.getDiscoverFeed(pageNumber, 10, userId, location);
-    }
-    async getLocations() {
-        return this.feedService.getLocations();
+        async;
+        getFeed(, page, string, , category, string, , req, Request);
+        {
+            const pageNumber = page ? parseInt(page, 10) : 1;
+            const userId = req.user?.id;
+            return this.feedService.getFeed(pageNumber, 10, userId, category);
+        }
+        getDiscoverFeed(, page, string, , req, Request);
+        {
+            const pageNumber = page ? parseInt(page, 10) : 1;
+            const userId = req.user?.id;
+            return this.feedService.getDiscoverFeed(pageNumber, 10, userId);
+        }
+        getCategories();
+        {
+            return this.feedService.getCategories();
+        }
     }
 };
 exports.FeedController = FeedController;
@@ -44,22 +51,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], FeedController.prototype, "getFeed", null);
-__decorate([
-    (0, common_1.UseGuards)(optional_jwt_auth_guard_1.OptionalJwtAuthGuard),
-    (0, common_1.Get)('discover'),
-    __param(0, (0, common_1.Query)('page')),
-    __param(1, (0, common_1.Query)('location')),
-    __param(2, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
-    __metadata("design:returntype", Promise)
-], FeedController.prototype, "getDiscoverFeed", null);
-__decorate([
-    (0, common_1.Get)('locations'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], FeedController.prototype, "getLocations", null);
 exports.FeedController = FeedController = __decorate([
     (0, common_1.Controller)('feed'),
     __metadata("design:paramtypes", [feed_service_1.FeedService])

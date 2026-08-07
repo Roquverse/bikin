@@ -16,69 +16,15 @@ let FeedService = class FeedService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async getFeedVideos(page = 1, limit = 10, userId) {
+    async getFeedVideos(page = 1, limit = 10, userId, category) {
         const skip = (page - 1) * limit;
-        const events = await this.prisma.event.findMany({
-            where: {
-                mediaUrl: {
-                    not: null,
-                },
+        const whereClause = {
+            mediaUrl: {
+                not: null,
             },
-            orderBy: {
-                createdAt: 'desc',
-            },
-            skip,
-            take: limit,
-            include: {
-                organizer: {
-                    select: {
-                        id: true,
-                        name: true,
-                        avatarUrl: true,
-                        followers: userId ? {
-                            where: { followerId: userId },
-                            take: 1
-                        } : false,
-                    },
-                },
-                _count: {
-                    select: {
-                        likes: true,
-                        comments: true,
-                        tickets: true,
-                    },
-                },
-                likes: userId ? {
-                    where: {
-                        userId,
-                    },
-                    take: 1,
-                } : false,
-            },
-        });
-        return events.map(event => ({
-            id: event.id,
-            date: event.date.toISOString(),
-            location: event.location,
-            videoUrl: event.mediaUrl,
-            thumbnailUrl: event.thumbnailUrl || event.mediaUrl,
-            caption: event.description || event.title,
-            hashtags: [],
-            organizerId: event.organizerId,
-            organizerName: event.organizer.name,
-            organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
-            likesCount: event._count.likes,
-            commentsCount: event._count.comments,
-            hasTickets: event.price > 0,
-            isLikedByMe: event.likes && event.likes.length > 0,
-            isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
-        }));
-    }
-    async getDiscoverFeed(page = 1, limit = 10, userId, location) {
-        const skip = (page - 1) * limit;
-        const whereClause = {};
-        if (location && location !== 'All') {
-            whereClause.location = { equals: location, mode: 'insensitive' };
+        };
+        if (category && category !== 'All') {
+            whereClause.category = { equals: category, mode: 'insensitive' };
         }
         const events = await this.prisma.event.findMany({
             where: whereClause,
@@ -118,6 +64,7 @@ let FeedService = class FeedService {
             id: event.id,
             date: event.date.toISOString(),
             location: event.location,
+            category: event.category,
             videoUrl: event.mediaUrl,
             thumbnailUrl: event.thumbnailUrl || event.mediaUrl,
             caption: event.description || event.title,
@@ -132,13 +79,69 @@ let FeedService = class FeedService {
             isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
         }));
     }
-    async getLocations() {
+    async getDiscoverFeed(page = 1, limit = 10, userId) {
+        const skip = (page - 1) * limit;
+        const whereClause = {};
+        const events = await this.prisma.event.findMany({
+            where: whereClause,
+            orderBy: {
+                createdAt: 'desc',
+            },
+            skip,
+            take: limit,
+            include: {
+                organizer: {
+                    select: {
+                        id: true,
+                        name: true,
+                        avatarUrl: true,
+                        followers: userId ? {
+                            where: { followerId: userId },
+                            take: 1
+                        } : false,
+                    },
+                },
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                        tickets: true,
+                    },
+                },
+                likes: userId ? {
+                    where: {
+                        userId,
+                    },
+                    take: 1,
+                } : false,
+            },
+        });
+        return events.map(event => ({
+            id: event.id,
+            date: event.date.toISOString(),
+            location: event.location,
+            category: event.category,
+            videoUrl: event.mediaUrl,
+            thumbnailUrl: event.thumbnailUrl || event.mediaUrl,
+            caption: event.description || event.title,
+            hashtags: [],
+            organizerId: event.organizerId,
+            organizerName: event.organizer.name,
+            organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
+            likesCount: event._count.likes,
+            commentsCount: event._count.comments,
+            hasTickets: event.price > 0,
+            isLikedByMe: event.likes && event.likes.length > 0,
+            isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
+        }));
+    }
+    async getCategories() {
         return [
-            { id: '1', name: 'Lagos' },
-            { id: '2', name: 'Abuja' },
-            { id: '3', name: 'Ibadan' },
-            { id: '4', name: 'Port Harcourt' },
-            { id: '5', name: 'London' }
+            { id: '1', name: 'Music' },
+            { id: '2', name: 'Comedy' },
+            { id: '3', name: 'Tech' },
+            { id: '4', name: 'Food' },
+            { id: '5', name: 'Sports' }
         ];
     }
 };

@@ -11,21 +11,22 @@ export class FeedController {
   @Get()
   async getFeed(@Query('page') page: string, @Req() req: Request) {
     const pageNumber = page ? parseInt(page, 10) : 1;
-    // req.user will be populated if token is provided and valid, otherwise undefined
+  async getFeed(@Query('page') page: string, @Query('category') category: string, @Req() req: Request) {
+    const pageNumber = page ? parseInt(page, 10) : 1;
     const userId = (req.user as any)?.id;
-    return this.feedService.getFeedVideos(pageNumber, 10, userId);
+    return this.feedService.getFeed(pageNumber, 10, userId, category);
   }
 
   @UseGuards(OptionalJwtAuthGuard)
   @Get('discover')
-  async getDiscoverFeed(@Query('page') page: string, @Query('location') location: string, @Req() req: Request) {
+  async getDiscoverFeed(@Query('page') page: string, @Req() req: Request) {
     const pageNumber = page ? parseInt(page, 10) : 1;
     const userId = (req.user as any)?.id;
-    return this.feedService.getDiscoverFeed(pageNumber, 10, userId, location);
+    return this.feedService.getDiscoverFeed(pageNumber, 10, userId);
   }
 
-  @Get('locations')
-  async getLocations() {
-    return this.feedService.getLocations();
+  @Get('categories')
+  async getCategories() {
+    return this.feedService.getCategories();
   }
 }

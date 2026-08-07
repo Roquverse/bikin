@@ -6,8 +6,8 @@ export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createEvent(organizerId: string, data: any) {
-    if (!data.title || !data.date || !data.location) {
-      throw new BadRequestException('Missing required fields: title, date, location');
+    if (!data.title || !data.date || !data.category) {
+      throw new BadRequestException('Missing required fields: title, date, category');
     }
     const price = data.price ? parseFloat(data.price) : (data.tiers && data.tiers.length > 0 ? parseFloat(data.tiers[0].price) : 0.0);
     
@@ -16,7 +16,7 @@ export class EventsService {
         title: data.title,
         description: data.description || '',
         date: new Date(data.date),
-        location: data.location,
+        category: data.category,
         mediaUrl: data.mediaUrl,
         thumbnailUrl: data.thumbnailUrl,
         price: price,

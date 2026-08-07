@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/models/video_model.dart';
 import '../../data/feed_repository.dart';
-import 'location_provider.dart';
 
 part 'discover_provider.g.dart';
 
@@ -9,8 +8,7 @@ part 'discover_provider.g.dart';
 class Discover extends _$Discover {
   @override
   FutureOr<List<VideoModel>> build() async {
-    final location = ref.watch(selectedLocationProvider);
-    return ref.watch(feedRepositoryProvider).getDiscoverFeedVideos(location: location);
+    return ref.watch(feedRepositoryProvider).getDiscoverFeedVideos();
   }
 
   Future<void> loadMore() async {
@@ -20,8 +18,7 @@ class Discover extends _$Discover {
     state = const AsyncValue.loading();
     
     state = await AsyncValue.guard(() async {
-      final location = ref.read(selectedLocationProvider);
-      final moreVideos = await ref.read(feedRepositoryProvider).getDiscoverFeedVideos(page: 2, location: location);
+      final moreVideos = await ref.read(feedRepositoryProvider).getDiscoverFeedVideos(page: 2);
       return [...currentVideos, ...moreVideos];
     });
   }

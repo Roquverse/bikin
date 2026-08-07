@@ -17,8 +17,8 @@ let EventsService = class EventsService {
         this.prisma = prisma;
     }
     async createEvent(organizerId, data) {
-        if (!data.title || !data.date || !data.location) {
-            throw new common_1.BadRequestException('Missing required fields: title, date, location');
+        if (!data.title || !data.date || !data.category) {
+            throw new common_1.BadRequestException('Missing required fields: title, date, category');
         }
         const price = data.price ? parseFloat(data.price) : (data.tiers && data.tiers.length > 0 ? parseFloat(data.tiers[0].price) : 0.0);
         return this.prisma.event.create({
@@ -26,7 +26,7 @@ let EventsService = class EventsService {
                 title: data.title,
                 description: data.description || '',
                 date: new Date(data.date),
-                location: data.location,
+                category: data.category,
                 mediaUrl: data.mediaUrl,
                 thumbnailUrl: data.thumbnailUrl,
                 price: price,

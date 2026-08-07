@@ -6,7 +6,7 @@ class VideoModel {
   final String thumbnailUrl;
   final String caption;
   final String? date;
-  final String? location;
+  final String? category;
   final List<String> hashtags;
   final String organizerId;
   final String organizerName;
@@ -23,7 +23,7 @@ class VideoModel {
     required this.thumbnailUrl,
     required this.caption,
     this.date,
-    this.location,
+    this.category,
     required this.hashtags,
     required this.organizerId,
     required this.organizerName,
@@ -52,7 +52,7 @@ class VideoModel {
       thumbnailUrl: parsedThumbnailUrl,
       caption: json['caption'] ?? json['title'] ?? '',
       date: json['date'] as String?,
-      location: json['location'] as String?,
+      category: json['category'] as String?,
       hashtags: List<String>.from(json['hashtags'] ?? []),
       organizerId: json['organizerId'] ?? '',
       organizerName: json['organizerName'] ?? json['organizer']?['name'] ?? 'Unknown',
@@ -78,7 +78,7 @@ class VideoModel {
       thumbnailUrl: thumbnailUrl,
       caption: caption,
       date: date,
-      location: location,
+      category: category,
       hashtags: hashtags,
       organizerId: organizerId,
       organizerName: organizerName,

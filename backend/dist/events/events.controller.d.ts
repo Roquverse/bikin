@@ -4,8 +4,6 @@ export declare class EventsController {
     constructor(eventsService: EventsService);
     createEvent(data: any, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
@@ -13,6 +11,8 @@ export declare class EventsController {
         mediaUrl: string | null;
         thumbnailUrl: string | null;
         price: number;
+        createdAt: Date;
+        updatedAt: Date;
         organizerId: string;
     }>;
     getTicketTiers(id: string): Promise<{
@@ -28,22 +28,20 @@ export declare class EventsController {
     getBookings(id: string, req: any): Promise<({
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         eventId: string;
+        userId: string;
         tierId: string | null;
         status: string;
     })[]>;
     updateEvent(id: string, data: any, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
@@ -51,6 +49,8 @@ export declare class EventsController {
         mediaUrl: string | null;
         thumbnailUrl: string | null;
         price: number;
+        createdAt: Date;
+        updatedAt: Date;
         organizerId: string;
     }>;
     deleteEvent(id: string, req: any): Promise<{
