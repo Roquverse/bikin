@@ -42,4 +42,16 @@ export class UsersController {
   async toggleFollow(@Param('id') id: string, @Body('isFollowing') isFollowing: boolean, @Request() req) {
     return this.usersService.toggleFollow(id, req.user.id, isFollowing);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me/following')
+  async getFollowing(@Request() req) {
+    return this.usersService.getFollowing(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me/liked-events')
+  async getLikedEvents(@Request() req) {
+    return this.usersService.getLikedEvents(req.user.id);
+  }
 }

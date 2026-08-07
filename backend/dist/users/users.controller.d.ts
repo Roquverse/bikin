@@ -25,6 +25,7 @@ export declare class UsersController {
             price: number;
             date: Date;
         }[];
+        eventsAttendedCount: number;
     }>;
     getMyEvents(req: any): Promise<{
         id: string;
@@ -73,4 +74,28 @@ export declare class UsersController {
     toggleFollow(id: string, isFollowing: boolean, req: any): Promise<{
         success: boolean;
     }>;
+    getFollowing(req: any): Promise<{
+        id: string;
+        name: string;
+        avatarUrl: string;
+        upcomingEventsCount: number;
+    }[]>;
+    getLikedEvents(req: any): Promise<{
+        id: string;
+        date: string;
+        location: string;
+        category: any;
+        videoUrl: string | null;
+        thumbnailUrl: string | null;
+        caption: string;
+        hashtags: never[];
+        organizerId: string;
+        organizerName: string;
+        organizerAvatarUrl: string;
+        likesCount: number;
+        commentsCount: number;
+        hasTickets: boolean;
+        isLikedByMe: boolean;
+        isFollowingOrganizer: boolean;
+    }[]>;
 }

@@ -24,6 +24,7 @@ export declare class UsersService {
             price: number;
             date: Date;
         }[];
+        eventsAttendedCount: number;
     }>;
     getUserEvents(userId: string): Promise<{
         id: string;
@@ -72,4 +73,28 @@ export declare class UsersService {
     toggleFollow(followingId: string, followerId: string, isFollowing: boolean): Promise<{
         success: boolean;
     }>;
+    getFollowing(userId: string): Promise<{
+        id: string;
+        name: string;
+        avatarUrl: string;
+        upcomingEventsCount: number;
+    }[]>;
+    getLikedEvents(userId: string): Promise<{
+        id: string;
+        date: string;
+        location: string;
+        category: any;
+        videoUrl: string | null;
+        thumbnailUrl: string | null;
+        caption: string;
+        hashtags: never[];
+        organizerId: string;
+        organizerName: string;
+        organizerAvatarUrl: string;
+        likesCount: number;
+        commentsCount: number;
+        hasTickets: boolean;
+        isLikedByMe: boolean;
+        isFollowingOrganizer: boolean;
+    }[]>;
 }

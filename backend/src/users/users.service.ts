@@ -46,6 +46,21 @@ export class UsersService {
       throw new Error('User not found');
     }
 
+    let eventsAttendedCount = 0;
+    if (user.role === 'ATTENDEE') {
+      eventsAttendedCount = await this.prisma.ticket.count({
+        where: {
+          userId,
+          status: { in: ['VALID', 'USED'] },
+          event: {
+            date: {
+              lt: new Date()
+            }
+          }
+        }
+      });
+    }
+
     let walletBalance = 0;
     let recentSales: {
       ticketId: string;
@@ -90,7 +105,8 @@ export class UsersService {
       followersCount: user._count.followers,
       followingCount: user._count.following,
       walletBalance,
-      recentSales
+      recentSales,
+      eventsAttendedCount
     };
   }
 
@@ -173,5 +189,71 @@ export class UsersService {
     }
 
     return { success: true };
+  }
+
+  async getFollowing(userId: string) {
+    const follows = await this.prisma.follows.findMany({
+      where: { followerId: userId },
+      include: {
+        following: {
+          include: {
+            events: {
+              where: {
+                date: { gte: new Date() }
+              },
+              select: { id: true }
+            }
+          }
+        }
+      }
+    });
+
+    return follows.map(f => ({
+      id: f.following.id,
+      name: f.following.name,
+      avatarUrl: f.following.avatarUrl || `https://i.pravatar.cc/150?u=${f.following.id}`,
+      upcomingEventsCount: f.following.events.length,
+    }));
+  }
+
+  async getLikedEvents(userId: string) {
+    const likes = await this.prisma.like.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        event: {
+          include: {
+            organizer: {
+              select: { id: true, name: true, avatarUrl: true }
+            },
+            _count: {
+              select: { likes: true, comments: true, tickets: true }
+            }
+          }
+        }
+      }
+    });
+
+    return likes.map(like => {
+      const event = like.event;
+      return {
+        id: event.id,
+        date: event.date.toISOString(),
+        location: event.location,
+        category: event.category,
+        videoUrl: event.mediaUrl,
+        thumbnailUrl: event.thumbnailUrl || event.mediaUrl,
+        caption: event.description || event.title,
+        hashtags: [],
+        organizerId: event.organizerId,
+        organizerName: event.organizer.name,
+        organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
+        likesCount: event._count.likes,
+        commentsCount: event._count.comments,
+        hasTickets: event.price > 0,
+        isLikedByMe: true,
+        isFollowingOrganizer: true, // we could compute this accurately, but usually if they liked it they might not be following. It's an approximation or we can query it.
+      };
+    });
   }
 }

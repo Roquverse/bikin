@@ -38,6 +38,12 @@ let UsersController = class UsersController {
     async toggleFollow(id, isFollowing, req) {
         return this.usersService.toggleFollow(id, req.user.id, isFollowing);
     }
+    async getFollowing(req) {
+        return this.usersService.getFollowing(req.user.id);
+    }
+    async getLikedEvents(req) {
+        return this.usersService.getLikedEvents(req.user.id);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -91,6 +97,22 @@ __decorate([
     __metadata("design:paramtypes", [String, Boolean, Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "toggleFollow", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('me/following'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getFollowing", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('me/liked-events'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getLikedEvents", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService])
