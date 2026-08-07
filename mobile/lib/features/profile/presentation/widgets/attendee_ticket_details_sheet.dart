@@ -18,7 +18,7 @@ class AttendeeTicketDetailsSheet extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.7,
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.primaryBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -60,7 +60,7 @@ class AttendeeTicketDetailsSheet extends StatelessWidget {
             eventTitle,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: AppColors.primary,
+              color: AppColors.offWhite,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),

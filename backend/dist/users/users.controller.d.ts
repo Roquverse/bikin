@@ -3,6 +3,18 @@ export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
     getProfile(req: any): any;
+    getMyStats(req: any): Promise<{
+        followersCount: number;
+        followingCount: number;
+        walletBalance: number;
+        recentSales: {
+            ticketId: string;
+            buyerName: string;
+            eventTitle: string;
+            price: number;
+            date: Date;
+        }[];
+    }>;
     getMyEvents(req: any): Promise<{
         id: string;
         videoUrl: string | null;
@@ -37,10 +49,10 @@ export declare class UsersController {
         };
     } & {
         id: string;
-        eventId: string;
-        userId: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        eventId: string;
+        status: string;
     })[]>;
 }

@@ -10,11 +10,11 @@ export declare class EventsController {
         };
     } & {
         id: string;
-        eventId: string;
-        userId: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        eventId: string;
+        status: string;
     })[]>;
     updateEvent(id: string, data: any, req: any): Promise<{
         id: string;

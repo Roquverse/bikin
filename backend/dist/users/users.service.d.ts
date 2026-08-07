@@ -7,6 +7,18 @@ export declare class UsersService {
     findByEmail(email: string): Promise<User | null>;
     findById(id: string): Promise<User | null>;
     updateRole(id: string, role: Role): Promise<User>;
+    getUserStats(userId: string): Promise<{
+        followersCount: number;
+        followingCount: number;
+        walletBalance: number;
+        recentSales: {
+            ticketId: string;
+            buyerName: string;
+            eventTitle: string;
+            price: number;
+            date: Date;
+        }[];
+    }>;
     getUserEvents(userId: string): Promise<{
         id: string;
         videoUrl: string | null;
@@ -41,10 +53,10 @@ export declare class UsersService {
         };
     } & {
         id: string;
-        eventId: string;
-        userId: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        eventId: string;
+        status: string;
     })[]>;
 }

@@ -17,7 +17,7 @@ class OrganizerEventDetailsSheet extends ConsumerWidget {
       height: MediaQuery.of(context).size.height * 0.8,
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.primaryBackground,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -44,7 +44,7 @@ class OrganizerEventDetailsSheet extends ConsumerWidget {
           Text(
             event.caption ?? 'Event Name',
             style: const TextStyle(
-              color: AppColors.primary,
+              color: AppColors.offWhite,
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -106,7 +106,7 @@ class OrganizerEventDetailsSheet extends ConsumerWidget {
               ),
             ],
           ),
-          const Divider(height: 32, color: AppColors.border),
+          const Divider(height: 32, color: AppColors.surfaceElevated),
           const Text(
             'Bookings',
             style: TextStyle(
@@ -139,7 +139,7 @@ class OrganizerEventDetailsSheet extends ConsumerWidget {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: AppColors.surfaceElevated,
                             child: Text(
                               user['name']?[0] ?? '?',
                               style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),

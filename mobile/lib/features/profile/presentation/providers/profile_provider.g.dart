@@ -54,6 +54,55 @@ abstract class _$UserEvents extends $AsyncNotifier<List<VideoModel>> {
   }
 }
 
+@ProviderFor(UserStats)
+final userStatsProvider = UserStatsProvider._();
+
+final class UserStatsProvider
+    extends $AsyncNotifierProvider<UserStats, Map<String, dynamic>> {
+  UserStatsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userStatsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userStatsHash();
+
+  @$internal
+  @override
+  UserStats create() => UserStats();
+}
+
+String _$userStatsHash() => r'662af5235cb3851e3c06b3cfd3d0b001474c0b9f';
+
+abstract class _$UserStats extends $AsyncNotifier<Map<String, dynamic>> {
+  FutureOr<Map<String, dynamic>> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<Map<String, dynamic>>, Map<String, dynamic>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<Map<String, dynamic>>,
+                Map<String, dynamic>
+              >,
+              AsyncValue<Map<String, dynamic>>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(UserTickets)
 final userTicketsProvider = UserTicketsProvider._();
 

@@ -13,6 +13,14 @@ class UserEvents extends _$UserEvents {
 }
 
 @riverpod
+class UserStats extends _$UserStats {
+  @override
+  FutureOr<Map<String, dynamic>> build() async {
+    return ref.watch(profileRepositoryProvider).getUserStats();
+  }
+}
+
+@riverpod
 class UserTickets extends _$UserTickets {
   @override
   FutureOr<List<dynamic>> build() async {

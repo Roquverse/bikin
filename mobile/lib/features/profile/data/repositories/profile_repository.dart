@@ -11,6 +11,21 @@ class ProfileRepository {
 
   ProfileRepository(this._dio);
 
+  Future<Map<String, dynamic>> getUserStats() async {
+    try {
+      final response = await _dio.get('/users/me/stats');
+      return response.data;
+    } catch (e) {
+      LoggerUtil.error('Failed to get user stats', e);
+      return {
+        'followersCount': 0,
+        'followingCount': 0,
+        'walletBalance': 0.0,
+        'recentSales': [],
+      };
+    }
+  }
+
   Future<List<VideoModel>> getUserEvents() async {
     try {
       final response = await _dio.get('/users/me/events');

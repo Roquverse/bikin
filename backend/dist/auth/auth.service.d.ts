@@ -38,11 +38,11 @@ export declare class AuthService {
     }>;
     setAccountType(userId: string, roleName: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         email: string;
         password: string;
         name: string;
         role: import(".prisma/client").$Enums.Role;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

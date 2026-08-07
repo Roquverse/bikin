@@ -23,6 +23,9 @@ let UsersController = class UsersController {
     getProfile(req) {
         return req.user;
     }
+    async getMyStats(req) {
+        return this.usersService.getUserStats(req.user.id);
+    }
     async getMyEvents(req) {
         return this.usersService.getUserEvents(req.user.id);
     }
@@ -39,6 +42,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('me/stats'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getMyStats", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('me/events'),

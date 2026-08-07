@@ -14,6 +14,12 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('me/stats')
+  async getMyStats(@Request() req) {
+    return this.usersService.getUserStats(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('me/events')
   async getMyEvents(@Request() req) {
     return this.usersService.getUserEvents(req.user.id);

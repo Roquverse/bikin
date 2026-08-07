@@ -31,6 +31,54 @@ let UsersService = class UsersService {
             data: { role },
         });
     }
+    async getUserStats(userId) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                _count: {
+                    select: { followers: true, following: true }
+                }
+            }
+        });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        let walletBalance = 0;
+        let recentSales = [];
+        if (user.role === 'ORGANIZER') {
+            const events = await this.prisma.event.findMany({
+                where: { organizerId: userId },
+                include: {
+                    tickets: {
+                        where: { status: 'VALID' },
+                        include: {
+                            user: { select: { name: true } },
+                            event: { select: { title: true } }
+                        },
+                        orderBy: { createdAt: 'desc' }
+                    }
+                }
+            });
+            events.forEach(event => {
+                walletBalance += event.price * event.tickets.length;
+                recentSales.push(...event.tickets.map(t => ({
+                    ticketId: t.id,
+                    buyerName: t.user.name,
+                    eventTitle: t.event.title,
+                    price: event.price,
+                    date: t.createdAt
+                })));
+            });
+            recentSales.sort((a, b) => b.date.getTime() - a.date.getTime());
+            recentSales = recentSales.slice(0, 10);
+        }
+        return {
+            followersCount: user._count.followers,
+            followingCount: user._count.following,
+            walletBalance,
+            recentSales
+        };
+    }
     async getUserEvents(userId) {
         const events = await this.prisma.event.findMany({
             where: { organizerId: userId },

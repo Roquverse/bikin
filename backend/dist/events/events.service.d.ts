@@ -10,11 +10,11 @@ export declare class EventsService {
         };
     } & {
         id: string;
-        eventId: string;
-        userId: string;
-        status: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        eventId: string;
+        status: string;
     })[]>;
     updateEvent(eventId: string, organizerId: string, data: any): Promise<{
         id: string;

@@ -32,11 +32,11 @@ export declare class AuthController {
         account_type: string;
     }): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         email: string;
         password: string;
         name: string;
         role: import(".prisma/client").$Enums.Role;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

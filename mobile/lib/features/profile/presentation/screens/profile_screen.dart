@@ -131,17 +131,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
+    final userState = ref.watch(authStateProvider);
+    final statsState = ref.watch(userStatsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.primaryBackground,
       body: SafeArea(
-        child: authState.when(
+        child: userState.when(
           data: (user) {
             final isOrganizer = user?.role == 'ORGANIZER';
-            final userName = user?.name ?? 'Guest';
-            final handle = '@${userName.replaceAll(' ', '_')}';
-            
+            final handle = user?.name != null ? '@${user!.name.replaceAll(' ', '').toLowerCase()}' : '@username';
+
+            final followersCount = statsState.maybeWhen(
+              data: (stats) => stats['followersCount']?.toString() ?? '0',
+              orElse: () => '-',
+            );
+            final followingCount = statsState.maybeWhen(
+              data: (stats) => stats['followingCount']?.toString() ?? '0',
+              orElse: () => '-',
+            );
+
             return Column(
               children: [
                 // Top Header
@@ -222,11 +231,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const _StatColumn(count: '1.2k', label: 'FOLLOWERS'),
+                                _StatColumn(count: followersCount, label: 'FOLLOWERS'),
                                 const SizedBox(width: 24),
                                 Container(height: 24, width: 1, color: AppColors.secondary),
                                 const SizedBox(width: 24),
-                                const _StatColumn(count: '842', label: 'FOLLOWING'),
+                                _StatColumn(count: followingCount, label: 'FOLLOWING'),
                               ],
                             ),
                             const SizedBox(height: 24),
@@ -286,10 +295,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                                   labelColor: AppColors.accentCta,
                                   unselectedLabelColor: AppColors.secondary,
                                   labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                  tabs: const [
-                                    Tab(text: 'Reels'),
-                                    Tab(text: 'Tickets'),
-                                    Tab(text: 'Liked'),
+                                  tabs: [
+                                    const Tab(text: 'Reels'),
+                                    const Tab(text: 'Tickets'),
+                                    Tab(text: isOrganizer ? 'Wallet' : 'Liked'),
                                   ],
                                 ),
                               ),
@@ -308,8 +317,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                         // Tickets tab
                         _TicketsList(isOrganizer: isOrganizer),
                         
-                        // Liked tab (placeholder)
-                        const Center(child: Text('Liked Reels', style: TextStyle(color: AppColors.secondary))),
+                        // Wallet or Liked tab
+                        isOrganizer ? const _WalletTab() : const Center(child: Text('Liked Reels', style: TextStyle(color: AppColors.secondary))),
                       ],
                     ),
                   ),
@@ -650,3 +659,89 @@ class _AccountTypeOption extends StatelessWidget {
     );
   }
 }
+
+class _WalletTab extends ConsumerWidget {
+  const _WalletTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsState = ref.watch(userStatsProvider);
+
+    return statsState.when(
+      data: (stats) {
+        final balance = stats['walletBalance'] as num? ?? 0;
+        final recentSales = stats['recentSales'] as List<dynamic>? ?? [];
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.accentCta, Color(0xFFFF9900)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Total Revenue', style: TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text('\$${balance.toStringAsFixed(2)}', style: const TextStyle(color: Colors.black, fontSize: 40, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text('Recent Ticket Sales', style: TextStyle(color: AppColors.offWhite, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            if (recentSales.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(child: Text('No ticket sales yet.', style: TextStyle(color: AppColors.secondary))),
+              )
+            else
+              ...recentSales.map((sale) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withAlpha(30),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.monetization_on, color: AppColors.success, size: 20),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(sale['buyerName'] ?? 'Unknown Buyer', style: const TextStyle(color: AppColors.offWhite, fontWeight: FontWeight.bold)),
+                            Text(sale['eventTitle'] ?? 'Unknown Event', style: const TextStyle(color: AppColors.secondary, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                      Text('+\$${sale['price']}', style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ],
+                  ),
+                );
+              }),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accentCta)),
+      error: (err, stack) => const Center(child: Text('Error loading wallet', style: TextStyle(color: AppColors.error))),
+    );
+  }
+}
+
