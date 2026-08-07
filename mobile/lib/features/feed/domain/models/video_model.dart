@@ -1,8 +1,12 @@
+import '../../../../core/network/api_client.dart';
+
 class VideoModel {
   final String id;
   final String videoUrl;
   final String thumbnailUrl;
   final String caption;
+  final String? date;
+  final String? location;
   final List<String> hashtags;
   final String organizerId;
   final String organizerName;
@@ -18,6 +22,8 @@ class VideoModel {
     required this.videoUrl,
     required this.thumbnailUrl,
     required this.caption,
+    this.date,
+    this.location,
     required this.hashtags,
     required this.organizerId,
     required this.organizerName,
@@ -30,15 +36,21 @@ class VideoModel {
   });
 
   factory VideoModel.fromJson(Map<String, dynamic> json) {
+    final rawVideoUrl = json['videoUrl'] ?? json['mediaUrl'] ?? '';
+    final rawThumbnailUrl = json['thumbnailUrl'] ?? json['mediaUrl'] ?? '';
+    final rawOrganizerAvatar = json['organizerAvatarUrl'] ?? json['organizer']?['avatarUrl'] ?? 'https://i.pravatar.cc/150';
+
     return VideoModel(
       id: json['id']?.toString() ?? '',
-      videoUrl: json['videoUrl'] ?? json['mediaUrl'] ?? '',
-      thumbnailUrl: json['thumbnailUrl'] ?? json['mediaUrl'] ?? '',
+      videoUrl: rawVideoUrl.isNotEmpty ? ApiClient.getFullUrl(rawVideoUrl) : '',
+      thumbnailUrl: rawThumbnailUrl.isNotEmpty ? ApiClient.getFullUrl(rawThumbnailUrl) : '',
       caption: json['caption'] ?? json['title'] ?? '',
+      date: json['date'] as String?,
+      location: json['location'] as String?,
       hashtags: List<String>.from(json['hashtags'] ?? []),
       organizerId: json['organizerId'] ?? '',
       organizerName: json['organizerName'] ?? json['organizer']?['name'] ?? 'Unknown',
-      organizerAvatarUrl: json['organizerAvatarUrl'] ?? json['organizer']?['avatarUrl'] ?? 'https://i.pravatar.cc/150',
+      organizerAvatarUrl: rawOrganizerAvatar.isNotEmpty ? ApiClient.getFullUrl(rawOrganizerAvatar) : '',
       likesCount: json['likesCount'] ?? 0,
       commentsCount: json['commentsCount'] ?? 0,
       hasTickets: json['hasTickets'] ?? (json['price'] != null && (json['price'] as num) > 0),
@@ -59,6 +71,8 @@ class VideoModel {
       videoUrl: videoUrl,
       thumbnailUrl: thumbnailUrl,
       caption: caption,
+      date: date,
+      location: location,
       hashtags: hashtags,
       organizerId: organizerId,
       organizerName: organizerName,

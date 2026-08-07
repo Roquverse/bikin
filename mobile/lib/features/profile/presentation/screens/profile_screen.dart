@@ -388,8 +388,19 @@ class _ProfileGrid extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      child: Center(
-                        child: Icon(Icons.play_circle_outline, color: Colors.white.withAlpha(150), size: 32),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (event.thumbnailUrl.isNotEmpty)
+                            Image.network(
+                              event.thumbnailUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                            ),
+                          Center(
+                            child: Icon(Icons.play_circle_outline, color: Colors.white.withAlpha(150), size: 32),
+                          ),
+                        ],
                       ),
                     ),
                   ),

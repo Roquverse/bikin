@@ -5,8 +5,10 @@ export declare class FeedController {
     constructor(feedService: FeedService);
     getFeed(page: string, req: Request): Promise<{
         id: string;
+        date: string;
+        location: string;
         videoUrl: string | null;
-        thumbnailUrl: string;
+        thumbnailUrl: string | null;
         caption: string;
         hashtags: never[];
         organizerId: string;

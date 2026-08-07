@@ -4,49 +4,45 @@ export declare class EventsController {
     constructor(eventsService: EventsService);
     createEvent(data: any, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
         location: string;
         mediaUrl: string | null;
         price: number;
+        createdAt: Date;
+        updatedAt: Date;
         organizerId: string;
     }>;
-    getTicketTiers(id: string): Promise<{
-        id: string;
-        name: string;
-        price: number;
-        availableQuantity: number;
-    }[]>;
+    getTicketTiers(id: string): Promise<any>;
     bookTickets(id: string, data: any, req: any): Promise<{
         success: boolean;
+        ticketsBooked: number;
     }>;
     getBookings(id: string, req: any): Promise<({
         user: {
-            name: string;
             id: string;
+            name: string;
             email: string;
         };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: string;
         eventId: string;
         userId: string;
+        status: string;
     })[]>;
     updateEvent(id: string, data: any, req: any): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         description: string;
         date: Date;
         location: string;
         mediaUrl: string | null;
         price: number;
+        createdAt: Date;
+        updatedAt: Date;
         organizerId: string;
     }>;
     deleteEvent(id: string, req: any): Promise<{

@@ -37,6 +37,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isPickingVideo = false;
 
+  final List<Map<String, dynamic>> _tiers = [
+    {'name': 'General Admission', 'price': '5000', 'capacity': '100'}
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -158,26 +162,79 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
-  Widget _buildTicketTier({required String title, required String subtitle, required String price, required Color color}) {
+  Widget _buildTicketTier({required Map<String, dynamic> tier, required int index}) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.black.withAlpha(40),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withAlpha(100), width: 1),
+        border: Border.all(color: AppColors.accentCta.withAlpha(100), width: 1),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 2),
-              Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              Text('Tier ${index + 1}', style: const TextStyle(color: AppColors.accentCta, fontWeight: FontWeight.bold, fontSize: 14)),
+              if (_tiers.length > 1)
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _tiers.removeAt(index);
+                    });
+                  },
+                  child: const Icon(Icons.close, color: Colors.white54, size: 20),
+                )
             ],
           ),
-          Text(price, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextField(
+                    controller: TextEditingController(text: tier['name'])..selection = TextSelection.collapsed(offset: tier['name'].length),
+                    onChanged: (val) => tier['name'] = val,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    decoration: const InputDecoration(
+                      hintText: 'Tier Name (e.g. VIP)',
+                      hintStyle: TextStyle(color: Colors.white38),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextField(
+                    controller: TextEditingController(text: tier['price'])..selection = TextSelection.collapsed(offset: tier['price'].length),
+                    onChanged: (val) => tier['price'] = val,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    decoration: const InputDecoration(
+                      hintText: 'Price (₦)',
+                      hintStyle: TextStyle(color: Colors.white38),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -483,26 +540,31 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                   ],
                                 ),
                                 GestureDetector(
-                                  onTap: () {},
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.accentCta.withAlpha(40),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: AppColors.accentCta),
+                                    onTap: () {
+                                      setState(() {
+                                        _tiers.add({'name': '', 'price': '', 'capacity': '100'});
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.accentCta.withAlpha(40),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: AppColors.accentCta),
+                                      ),
+                                      child: const Text('Add Tier', style: TextStyle(color: AppColors.accentCta, fontSize: 12, fontWeight: FontWeight.bold)),
                                     ),
-                                    child: const Text('Add Tier', style: TextStyle(color: AppColors.accentCta, fontSize: 12, fontWeight: FontWeight.bold)),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            _buildTicketTier(title: 'Regular', subtitle: 'General Admission', price: '₦5,000', color: Colors.purple.shade300),
-                            const SizedBox(height: 12),
-                            _buildTicketTier(title: 'VIP', subtitle: 'Backstage Access', price: '₦25,000', color: AppColors.accentCta),
-                          ],
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              ..._tiers.asMap().entries.map((entry) {
+                                return _buildTicketTier(tier: entry.value, index: entry.key);
+                              }).toList(),
+                            ],
+                          ),
                         ),
-                      ),
+                        
                       const SizedBox(height: 32),
 
                       // Post Button
@@ -542,8 +604,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                 date: date,
                                 time: time,
                                 location: location,
-                                price: '5000',
+                                price: _tiers.isNotEmpty ? _tiers.first['price'] : '0',
                                 mediaUrl: mediaUrl,
+                                tiers: _tiers,
                               );
                             } catch (e) {
                               debugPrint('Background event creation failed: $e');

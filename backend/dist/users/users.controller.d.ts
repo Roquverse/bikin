@@ -4,10 +4,10 @@ export declare class UsersController {
     constructor(usersService: UsersService);
     getProfile(req: any): any;
     updateProfile(req: any, data: any): Promise<{
-        name: string;
         id: string;
         email: string;
         password: string;
+        name: string;
         avatarUrl: string | null;
         bio: string | null;
         role: import(".prisma/client").$Enums.Role;
@@ -28,8 +28,10 @@ export declare class UsersController {
     }>;
     getMyEvents(req: any): Promise<{
         id: string;
+        date: string;
+        location: string;
         videoUrl: string | null;
-        thumbnailUrl: string;
+        thumbnailUrl: string | null;
         caption: string;
         hashtags: never[];
         organizerId: string;

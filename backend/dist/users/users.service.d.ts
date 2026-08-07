@@ -27,8 +27,10 @@ export declare class UsersService {
     }>;
     getUserEvents(userId: string): Promise<{
         id: string;
+        date: string;
+        location: string;
         videoUrl: string | null;
-        thumbnailUrl: string;
+        thumbnailUrl: string | null;
         caption: string;
         hashtags: never[];
         organizerId: string;

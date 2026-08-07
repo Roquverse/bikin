@@ -100,7 +100,7 @@ export class UsersService {
       orderBy: { createdAt: 'desc' },
       include: {
         organizer: {
-          select: { id: true, name: true }
+          select: { id: true, name: true, avatarUrl: true }
         },
         _count: {
           select: { likes: true, comments: true, tickets: true }
@@ -114,13 +114,15 @@ export class UsersService {
 
     return events.map((event) => ({
       id: event.id,
+      date: event.date.toISOString(),
+      location: event.location,
       videoUrl: event.mediaUrl,
-      thumbnailUrl: '',
+      thumbnailUrl: event.mediaUrl,
       caption: event.description || event.title,
       hashtags: [],
       organizerId: event.organizerId,
       organizerName: event.organizer.name,
-      organizerAvatarUrl: `https://i.pravatar.cc/150?u=${event.organizerId}`,
+      organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
       likesCount: event._count.likes,
       commentsCount: event._count.comments,
       hasTickets: event.price > 0,

@@ -10,6 +10,7 @@ import '../widgets/interaction_rail.dart';
 import '../widgets/heart_burst_animator.dart';
 import '../widgets/ticket_booking_sheet.dart';
 import '../widgets/comments_sheet.dart';
+import '../../domain/models/video_model.dart';
 
 class HomeFeedScreen extends ConsumerStatefulWidget {
   final bool isTabActive;
@@ -48,13 +49,13 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
     if (mounted) setState(() => _isOverlayOpen = false);
   }
 
-  void _openTickets(String videoId) async {
+  void _openTickets(VideoModel video) async {
     setState(() => _isOverlayOpen = true);
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => TicketBookingSheet(videoId: videoId),
+      builder: (context) => TicketBookingSheet(video: video),
     );
     if (mounted) setState(() => _isOverlayOpen = false);
   }
@@ -107,7 +108,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                           InteractionRail(
                             videoId: video.id,
                             onOpenComments: () => _openComments(video.id, video.commentsCount),
-                            onOpenTickets: () => _openTickets(video.id),
+                            onOpenTickets: () => _openTickets(video),
                           ),
                         ],
                       ),

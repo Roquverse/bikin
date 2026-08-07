@@ -54,22 +54,22 @@ class EventsRepository {
     required String location,
     required String price,
     String? mediaUrl,
+    List<Map<String, dynamic>>? tiers,
   }) async {
     try {
-      // Combine date and time for backend
-      // date is "YYYY-MM-DD", time is "HH:MM AM/PM". Backend expects ISO date.
-      // We can just pass the date as is, backend uses new Date(data.date).
-      // A more robust way is parsing, but for simplicity we'll pass "YYYY-MM-DD"
       final eventDate = DateTime.parse(date);
       
-      final response = await _dio.post('/events', data: {
+      final payload = {
         'title': title,
         'description': description,
         'date': eventDate.toIso8601String(),
         'location': location,
         'price': double.tryParse(price.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0,
-        'mediaUrl': mediaUrl,
-      });
+        if (mediaUrl != null) 'mediaUrl': mediaUrl,
+        if (tiers != null) 'tiers': tiers,
+      };
+
+      final response = await _dio.post('/events', data: payload);
       return response.statusCode == 201;
     } catch (e) {
       LoggerUtil.error('Failed to create event', e);

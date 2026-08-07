@@ -1,13 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../domain/models/video_model.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/ticket_booking_provider.dart';
 
 class TicketBookingSheet extends ConsumerStatefulWidget {
-  final String videoId;
+  final VideoModel video;
 
-  const TicketBookingSheet({super.key, required this.videoId});
+  const TicketBookingSheet({super.key, required this.video});
 
   @override
   ConsumerState<TicketBookingSheet> createState() => _TicketBookingSheetState();
@@ -22,7 +24,7 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
     setState(() => _isBooking = true);
     try {
       // Book 1 ticket of the selected tier
-      await ref.read(ticketBookingProvider(widget.videoId).notifier).bookTickets();
+      await ref.read(ticketBookingProvider(widget.video.id).notifier).bookTickets();
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,8 +58,16 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final tiersAsync = ref.watch(ticketTiersProvider(widget.videoId));
-    final selections = ref.watch(ticketBookingProvider(widget.videoId));
+    final tiersAsync = ref.watch(ticketTiersProvider(widget.video.id));
+    final selections = ref.watch(ticketBookingProvider(widget.video.id));
+    
+    String formattedDate = 'Date not specified';
+    if (widget.video.date != null) {
+      try {
+        final d = DateTime.parse(widget.video.date!);
+        formattedDate = DateFormat('EEEE, MMM d · h:mm a').format(d);
+      } catch (_) {}
+    }
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -97,9 +107,9 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Eko Electronic Summer Pop-up',
-                          style: TextStyle(
+                        Text(
+                          widget.video.caption.isNotEmpty ? widget.video.caption : 'Event Details',
+                          style: const TextStyle(
                             color: AppColors.offWhite,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -112,7 +122,7 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
                             const Icon(Icons.location_on, size: 14, color: AppColors.secondary),
                             const SizedBox(width: 6),
                             Text(
-                              'Landmark Beach, Lagos',
+                              widget.video.location ?? 'Location not specified',
                               style: TextStyle(
                                 color: AppColors.secondary.withAlpha(220),
                                 fontSize: 13,
@@ -126,7 +136,7 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
                             const Icon(Icons.calendar_today, size: 14, color: AppColors.secondary),
                             const SizedBox(width: 6),
                             Text(
-                              'Saturday, Dec 23 · 8:00 PM',
+                              formattedDate,
                               style: TextStyle(
                                 color: AppColors.secondary.withAlpha(220),
                                 fontSize: 13,
@@ -166,7 +176,7 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             setState(() {
                               _selectedTierId = tiers.first.id;
-                              ref.read(ticketBookingProvider(widget.videoId).notifier).increment(tiers.first.id, tiers.first.availableQuantity);
+                              ref.read(ticketBookingProvider(widget.video.id).notifier).increment(tiers.first.id, tiers.first.availableQuantity);
                             });
                           });
                         }
@@ -207,7 +217,7 @@ class _TicketBookingSheetState extends ConsumerState<TicketBookingSheet> {
                                     onTap: () {
                                       setState(() => _selectedTierId = tier.id);
                                       // Reset other selections, set selected tier to 1 qty
-                                      final notifier = ref.read(ticketBookingProvider(widget.videoId).notifier);
+                                      final notifier = ref.read(ticketBookingProvider(widget.video.id).notifier);
                                       // Clear existing
                                       for (final t in tiers) {
                                         if (selections.containsKey(t.id)) {

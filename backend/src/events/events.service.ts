@@ -9,6 +9,7 @@ export class EventsService {
     if (!data.title || !data.date || !data.location) {
       throw new BadRequestException('Missing required fields: title, date, location');
     }
+    const price = data.price ? parseFloat(data.price) : (data.tiers && data.tiers.length > 0 ? parseFloat(data.tiers[0].price) : 0.0);
     
     return this.prisma.event.create({
       data: {
@@ -17,8 +18,15 @@ export class EventsService {
         date: new Date(data.date),
         location: data.location,
         mediaUrl: data.mediaUrl,
-        price: data.price ? parseFloat(data.price) : 0.0,
+        price: price,
         organizerId,
+        tiers: data.tiers && data.tiers.length > 0 ? {
+          create: data.tiers.map((tier: any) => ({
+            name: tier.name,
+            price: parseFloat(tier.price) || 0.0,
+            capacity: parseInt(tier.capacity) || 100,
+          }))
+        } : undefined,
       },
     });
   }
@@ -29,6 +37,20 @@ export class EventsService {
     });
     if (!event) throw new NotFoundException('Event not found');
 
+    const tiers = await this.prisma.ticketTier.findMany({
+      where: { eventId },
+    });
+
+    if (tiers.length > 0) {
+      return tiers.map(t => ({
+        id: t.id,
+        name: t.name,
+        price: t.price,
+        availableQuantity: t.capacity, // Can be improved to compute capacity - booked tickets
+      }));
+    }
+
+    // Fallback for events created before tiers existed
     return [
       {
         id: 't1',
@@ -45,12 +67,25 @@ export class EventsService {
     });
     if (!event) throw new NotFoundException('Event not found');
 
-    let count = 1;
-    if (data.selectedTiers && data.selectedTiers['t1']) {
-      count = data.selectedTiers['t1'];
-    }
-
-    for (let i = 0; i < count; i++) {
+    let successCount = 0;
+    
+    if (data.selectedTiers && Object.keys(data.selectedTiers).length > 0) {
+      for (const [tierId, count] of Object.entries(data.selectedTiers)) {
+        const qty = count as number;
+        for (let i = 0; i < qty; i++) {
+          await this.prisma.ticket.create({
+            data: {
+              eventId,
+              userId,
+              tierId: tierId === 't1' ? null : tierId,
+              status: 'VALID',
+            },
+          });
+          successCount++;
+        }
+      }
+    } else {
+      // Fallback
       await this.prisma.ticket.create({
         data: {
           eventId,
@@ -58,9 +93,10 @@ export class EventsService {
           status: 'VALID',
         },
       });
+      successCount++;
     }
     
-    return { success: true };
+    return { success: true, ticketsBooked: successCount };
   }
 
   async getEventBookings(eventId: string, organizerId: string) {

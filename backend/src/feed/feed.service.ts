@@ -24,6 +24,7 @@ export class FeedService {
           select: {
             id: true,
             name: true,
+            avatarUrl: true,
           },
         },
         _count: {
@@ -44,13 +45,15 @@ export class FeedService {
 
     return events.map(event => ({
       id: event.id,
+      date: event.date.toISOString(),
+      location: event.location,
       videoUrl: event.mediaUrl,
-      thumbnailUrl: '', // Can be extended to Bunny thumbnail API later
+      thumbnailUrl: event.mediaUrl, // Using mediaUrl for thumbnail as well for now
       caption: event.description || event.title,
       hashtags: [], // You can extend Prisma schema to have hashtags later
       organizerId: event.organizerId,
       organizerName: event.organizer.name,
-      organizerAvatarUrl: `https://i.pravatar.cc/150?u=${event.organizerId}`,
+      organizerAvatarUrl: event.organizer.avatarUrl || `https://i.pravatar.cc/150?u=${event.organizerId}`,
       likesCount: event._count.likes,
       commentsCount: event._count.comments,
       hasTickets: event.price > 0,

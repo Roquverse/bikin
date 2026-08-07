@@ -4,8 +4,10 @@ export declare class FeedService {
     constructor(prisma: PrismaService);
     getFeedVideos(page?: number, limit?: number, userId?: string): Promise<{
         id: string;
+        date: string;
+        location: string;
         videoUrl: string | null;
-        thumbnailUrl: string;
+        thumbnailUrl: string | null;
         caption: string;
         hashtags: never[];
         organizerId: string;

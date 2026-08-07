@@ -16,6 +16,8 @@ export declare class AuthController {
             name: string;
             email: string;
             role: import(".prisma/client").$Enums.Role;
+            avatarUrl: string | null;
+            bio: string | null;
         };
     }>;
     login(loginDto: LoginDto): Promise<{
@@ -26,6 +28,8 @@ export declare class AuthController {
             name: string;
             email: string;
             role: import(".prisma/client").$Enums.Role;
+            avatarUrl: string | null;
+            bio: string | null;
         };
     }>;
     setAccountType(req: any, body: {

@@ -76,7 +76,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
       
       // Refresh user data
-      await ref.read(authStateProvider.notifier).checkAuth();
+      await ref.read(authStateProvider.notifier).refreshUser();
       
       if (mounted) {
         context.pop();
@@ -100,9 +100,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.primaryBackground,
         elevation: 0,
         title: const Text('Edit Profile', style: TextStyle(color: Colors.white)),
         leading: IconButton(
