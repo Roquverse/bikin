@@ -16,6 +16,7 @@ export class EventsService {
         title: data.title,
         description: data.description || '',
         date: new Date(data.date),
+        location: data.location,
         category: data.category,
         mediaUrl: data.mediaUrl,
         thumbnailUrl: data.thumbnailUrl,
