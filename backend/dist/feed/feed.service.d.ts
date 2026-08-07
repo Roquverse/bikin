@@ -20,7 +20,7 @@ export declare class FeedService {
         isLikedByMe: boolean;
         isFollowingOrganizer: boolean;
     }[]>;
-    getDiscoverFeed(page?: number, limit?: number, userId?: string, category?: string): Promise<{
+    getDiscoverFeed(page?: number, limit?: number, userId?: string, location?: string): Promise<{
         id: string;
         date: string;
         location: string;
@@ -39,6 +39,10 @@ export declare class FeedService {
         isFollowingOrganizer: boolean;
     }[]>;
     getCategories(): Promise<{
+        id: string;
+        name: string;
+    }[]>;
+    getLocations(): Promise<{
         id: string;
         name: string;
     }[]>;

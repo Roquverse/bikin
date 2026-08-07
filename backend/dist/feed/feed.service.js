@@ -79,11 +79,11 @@ let FeedService = class FeedService {
             isFollowingOrganizer: event.organizer.followers && event.organizer.followers.length > 0,
         }));
     }
-    async getDiscoverFeed(page = 1, limit = 10, userId, category) {
+    async getDiscoverFeed(page = 1, limit = 10, userId, location) {
         const skip = (page - 1) * limit;
         const whereClause = {};
-        if (category && category !== 'All') {
-            whereClause.category = { equals: category, mode: 'insensitive' };
+        if (location && location !== 'All') {
+            whereClause.location = { equals: location, mode: 'insensitive' };
         }
         const events = await this.prisma.event.findMany({
             where: whereClause,
@@ -145,6 +145,15 @@ let FeedService = class FeedService {
             { id: '3', name: 'Tech' },
             { id: '4', name: 'Food' },
             { id: '5', name: 'Sports' }
+        ];
+    }
+    async getLocations() {
+        return [
+            { id: '1', name: 'Lagos' },
+            { id: '2', name: 'Abuja' },
+            { id: '3', name: 'Port Harcourt' },
+            { id: '4', name: 'Ibadan' },
+            { id: '5', name: 'Kano' }
         ];
     }
 };

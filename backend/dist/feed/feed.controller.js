@@ -25,13 +25,16 @@ let FeedController = class FeedController {
         const userId = req.user?.id;
         return this.feedService.getFeedVideos(pageNumber, 10, userId, category);
     }
-    async getDiscoverFeed(page, category, req) {
+    async getDiscoverFeed(page, location, req) {
         const pageNumber = page ? parseInt(page, 10) : 1;
         const userId = req.user?.id;
-        return this.feedService.getDiscoverFeed(pageNumber, 10, userId, category);
+        return this.feedService.getDiscoverFeed(pageNumber, 10, userId, location);
     }
     async getCategories() {
         return this.feedService.getCategories();
+    }
+    async getLocations() {
+        return this.feedService.getLocations();
     }
 };
 exports.FeedController = FeedController;
@@ -49,7 +52,7 @@ __decorate([
     (0, common_1.UseGuards)(optional_jwt_auth_guard_1.OptionalJwtAuthGuard),
     (0, common_1.Get)('discover'),
     __param(0, (0, common_1.Query)('page')),
-    __param(1, (0, common_1.Query)('category')),
+    __param(1, (0, common_1.Query)('location')),
     __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, Object]),
@@ -61,6 +64,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], FeedController.prototype, "getCategories", null);
+__decorate([
+    (0, common_1.Get)('locations'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], FeedController.prototype, "getLocations", null);
 exports.FeedController = FeedController = __decorate([
     (0, common_1.Controller)('feed'),
     __metadata("design:paramtypes", [feed_service_1.FeedService])

@@ -73,13 +73,13 @@ export class FeedService {
     }));
   }
 
-  async getDiscoverFeed(page: number = 1, limit: number = 10, userId?: string, category?: string) {
+  async getDiscoverFeed(page: number = 1, limit: number = 10, userId?: string, location?: string) {
     const skip = (page - 1) * limit;
 
     const whereClause: any = {};
     
-    if (category && category !== 'All') {
-      whereClause.category = { equals: category, mode: 'insensitive' };
+    if (location && location !== 'All') {
+      whereClause.location = { equals: location, mode: 'insensitive' };
     }
 
     const events = await this.prisma.event.findMany({
@@ -145,6 +145,16 @@ export class FeedService {
       { id: '3', name: 'Tech' },
       { id: '4', name: 'Food' },
       { id: '5', name: 'Sports' }
+    ];
+  }
+
+  async getLocations() {
+    return [
+      { id: '1', name: 'Lagos' },
+      { id: '2', name: 'Abuja' },
+      { id: '3', name: 'Port Harcourt' },
+      { id: '4', name: 'Ibadan' },
+      { id: '5', name: 'Kano' }
     ];
   }
 }

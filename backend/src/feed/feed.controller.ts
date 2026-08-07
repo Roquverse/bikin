@@ -17,14 +17,19 @@ export class FeedController {
 
   @UseGuards(OptionalJwtAuthGuard)
   @Get('discover')
-  async getDiscoverFeed(@Query('page') page: string, @Query('category') category: string, @Req() req: Request) {
+  async getDiscoverFeed(@Query('page') page: string, @Query('location') location: string, @Req() req: Request) {
     const pageNumber = page ? parseInt(page, 10) : 1;
     const userId = (req.user as any)?.id;
-    return this.feedService.getDiscoverFeed(pageNumber, 10, userId, category);
+    return this.feedService.getDiscoverFeed(pageNumber, 10, userId, location);
   }
 
   @Get('categories')
   async getCategories() {
     return this.feedService.getCategories();
+  }
+
+  @Get('locations')
+  async getLocations() {
+    return this.feedService.getLocations();
   }
 }
